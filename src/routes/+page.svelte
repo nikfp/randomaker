@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { inputSchema } from '$lib/input-normalizer';
-	import { listState } from '$lib/randomizer-store.svelte';
+	import { listState, type ListItem } from '$lib/randomizer-store.svelte';
 
 	let inputValue: string | undefined = $state();
-	let selection: string | undefined = $state();
-	let errorMessages: string[] | null = $state(null);
+	let selection: ListItem | undefined = $state();
+	let errorMessages: { message: string; key: string }[] | null = $state(null);
 
 	let listStore = listState();
 
@@ -23,7 +23,9 @@
 
 			errorMessages = null;
 		} else {
-			errorMessages = parseResult.error.issues.map((el) => el.message);
+			errorMessages = parseResult.error.issues.map((el) => {
+				return { message: el.message, key: crypto.randomUUID() };
+			});
 		}
 	}
 </script>
@@ -42,7 +44,7 @@
 			bind:this={inputEl}
 		/>
 		{#if errorMessages}
-			{#each errorMessages as error, i}
+			{#each errorMessages as error, i (error.key)}
 				<p id={`error-message-${i}`} class="text-red-500">{errorMessages}</p>
 			{/each}
 		{/if}
@@ -52,7 +54,7 @@
 	</form>
 
 	<div class="mt-4 w-fit border border-zinc-500 p-4">
-		{#each listStore.value as item, index}
+		{#each listStore.value as item, index (item.key)}
 			<div id={index.toString()}>
 				<p>{item}</p>
 			</div>

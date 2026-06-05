@@ -1,4 +1,4 @@
-type ListItem = string;
+export type ListItem = { label: string; key: string };
 
 function secureRandomIndex(length: number): number | undefined {
 	if (length <= 0) return undefined;
@@ -22,8 +22,8 @@ function createListState(initial: ListItem[] = []) {
 			return items;
 		},
 
-		add(item: ListItem) {
-			items.push(item);
+		add(itemLabel: string) {
+			items.push({ label: itemLabel, key: crypto.randomUUID() });
 		},
 
 		removeAt(index: number) {
