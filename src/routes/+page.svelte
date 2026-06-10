@@ -30,11 +30,13 @@
 	}
 </script>
 
-<div class="p-6">
+<div class="flex flex-col items-center p-6">
 	<h1 class="text-2xl">Randomaker</h1>
 
-	<form onsubmit={addToList}>
+	<form onsubmit={addToList} class="flex w-full max-w-md">
+		<label for="list-item" class="sr-only">List Input</label>
 		<input
+			id="list-item"
 			bind:value={inputValue}
 			type="text"
 			placeholder="input a list item here"
@@ -45,7 +47,7 @@
 		/>
 		{#if errorMessages}
 			{#each errorMessages as error, i (error.key)}
-				<p id={`error-message-${i}`} class="text-red-500">{errorMessages}</p>
+				<p id={`error-message-${i}`} class="text-red-500">{error.message}</p>
 			{/each}
 		{/if}
 		<button type="submit" class="mt-4 rounded-md border border-gray-400 bg-gray-200 px-2"
