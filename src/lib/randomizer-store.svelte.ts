@@ -23,7 +23,7 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		add(itemLabel: string) {
-			items.push({ label: itemLabel, key: crypto.randomUUID() });
+			items = [...items, { label: itemLabel, key: crypto.randomUUID() } ];
 		},
 
 		removeAt(index: number) {
@@ -35,6 +35,10 @@ function createListState(initial: ListItem[] = []) {
 		random(): ListItem | undefined {
 			const index = secureRandomIndex(items.length);
 			return index === undefined ? undefined : items[index];
+		},
+
+		removeByKey(key: string) {
+			items = items.filter((item) => item.key !== key);
 		},
 
 		clear() {

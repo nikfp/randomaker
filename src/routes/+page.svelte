@@ -7,7 +7,9 @@
 
 	let listStore = listState();
 
-	let listOpen = $state(true);
+	function listItemDeleted(key: string) {
+		listStore.removeByKey(key);
+	}
 
 	function listItemAdded(input: string) {
 		listStore.add(input);
@@ -19,7 +21,8 @@
 
 	<ListInput inputAcceptedHook={listItemAdded} />
 
-	<ListItems {listOpen} listItems={listStore.value} />
+	<ListItems listItems={listStore.value} deleteItemHook={listItemDeleted} />
+
 	<button
 		class="mt-4 rounded-md border border-gray-400 bg-gray-200 px-2"
 		onclick={() => {
