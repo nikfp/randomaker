@@ -3,6 +3,7 @@
 
 	import ChevronDown from './icons/ChevronDown.svelte';
 	import ChevronRight from './icons/ChevronRight.svelte';
+	import Trash from './icons/Trash.svelte';
 
 	type Props = {
 		deleteItemHook: (key: string) => void;
@@ -60,24 +61,31 @@
 	</h2>
 
 	{#if listOpen}
-		<div class="flex w-full flex-col items-center p-4">
+		<div class="flex w-full flex-col items-center px-4">
 			{#if showEmpty && !isRemoving}
-				<div in:fade={{ delay: 100 }} class="text-zinc-500 italic font-light">No list items to display</div>
+				<div in:fade={{ delay: 100 }} class="font-light text-zinc-500 italic">
+					No list items to display
+				</div>
 			{/if}
 			{#each props.listItems as item, index (item.key)}
 				<div
 					id={index.toString()}
-					in:fade={{ duration: 250 }}
-					out:fade={{ duration: 250 }}
+					in:fade={{ duration: 150 }}
+					out:fade={{ duration: 150 }}
 					onoutroend={handleOutroEnd}
+					class={['w-full pb-2', 'border-t border-t-zinc-300 pt-2']}
 				>
-					<p>
-						<span>
+					<p class="flex w-full items-center justify-between gap-2.5">
+						<span class="grow">
 							{item.label}
 						</span>
-						<span>
-							<button type="button" onclick={() => handleDelete(item.key)}> X </button>
-						</span>
+						<button
+							class="inline-flex items-center"
+							type="button"
+							onclick={() => handleDelete(item.key)}
+						>
+							<Trash className="text-zinc-400" />
+						</button>
 					</p>
 				</div>
 			{/each}
