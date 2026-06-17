@@ -14,6 +14,18 @@ function secureRandomIndex(length: number): number | undefined {
 	return buffer[0] % length;
 }
 
+function moveItem<T>(arr: T[], from: number, to: number): T[] {
+	if (from === to) return arr;
+	if (from < 0 || from >= arr.length) return arr;
+	if (to < 0 || to >= arr.length) return arr;
+
+	const copy = [...arr];
+	const [item] = copy.splice(from, 1);
+	copy.splice(to, 0, item);
+
+	return copy;
+}
+
 function createListState(initial: ListItem[] = []) {
 	let items = $state([...initial]);
 
@@ -23,7 +35,7 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		add(itemLabel: string) {
-			items = [...items, { label: itemLabel, key: crypto.randomUUID() } ];
+			items = [...items, { label: itemLabel, key: crypto.randomUUID() }];
 		},
 
 		removeAt(index: number) {
@@ -39,6 +51,25 @@ function createListState(initial: ListItem[] = []) {
 
 		removeByKey(key: string) {
 			items = items.filter((item) => item.key !== key);
+		},
+
+		indexByKey(key: string) {
+			return items.findIndex((item) => item.key === key);
+		},
+
+		moveByKey(fromKey: string, toKey: string, place: 'before' | 'after' = 'before') {
+			const from = items.findIndex((item) => item.key === fromKey);
+			const to = items.findIndex((item) => item.key === toKey);
+
+			if (from === -1 || to === -1 || from == to) return;
+
+			let nextIndex = place === 'after' ? to + 1 : to;
+
+			if (from < nextIndex) {
+				nextIndex -= 1;
+			}
+
+			items = moveItem(items, from, nextIndex);
 		},
 
 		clear() {

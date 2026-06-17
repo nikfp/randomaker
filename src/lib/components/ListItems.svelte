@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
+	import { draggable, droppable, type DragDropState } from '@thisux/sveltednd';
 
 	import ChevronDown from './icons/ChevronDown.svelte';
 	import ChevronRight from './icons/ChevronRight.svelte';
@@ -7,17 +9,18 @@
 
 	type Props = {
 		deleteItemHook: (key: string) => void;
+		moveItemHook: (from: string, to: string, place: 'before' | 'after') => void;
 		listItems: { key: string; label: string }[];
 	};
 
-	let props: Props = $props();
+	let { listItems, moveItemHook, deleteItemHook }: Props = $props();
 	let listOpen = $state(true);
 
 	let isRemoving = $state(false);
-	let showEmpty = $state(props.listItems.length === 0);
+	let showEmpty = $state(listItems.length === 0);
 
 	$effect(() => {
-		if (props.listItems.length > 0) {
+		if (listItems.length > 0) {
 			showEmpty = false;
 		}
 	});
@@ -25,15 +28,23 @@
 	function handleDelete(key: string) {
 		isRemoving = true;
 		showEmpty = false;
-		props.deleteItemHook(key);
+		deleteItemHook(key);
 	}
 
 	function handleOutroEnd() {
 		isRemoving = false;
 
-		if (props.listItems.length === 0) {
+		if (listItems.length === 0) {
 			showEmpty = true;
 		}
+	}
+
+	function handleDrop(state: DragDropState<(typeof listItems)[0]>) {
+		const { draggedItem, targetContainer, dropPosition } = state;
+
+		if (!targetContainer) return;
+
+		moveItemHook(draggedItem.key, targetContainer, dropPosition ?? 'before');
 	}
 </script>
 
@@ -67,15 +78,20 @@
 					No list items to display
 				</div>
 			{/if}
-			{#each props.listItems as item, index (item.key)}
+			{#each listItems as item, index (item.key)}
 				<div
+					use:draggable={{ container: item.key, dragData: item, handle: '.drag-handle' }}
+					use:droppable={{ container: item.key, callbacks: { onDrop: handleDrop } }}
 					id={index.toString()}
+					animate:flip={{ duration: 180 }}
 					in:fade={{ duration: 150 }}
 					out:fade={{ duration: 150 }}
 					onoutroend={handleOutroEnd}
-					class={['w-full pb-2', 'border-t border-t-zinc-300 pt-2']}
+					class={['w-full pb-2', index > 0 && 'border-t border-t-zinc-300 ', 'pt-2']}
+					role="listitem"
 				>
 					<p class="flex w-full items-center justify-between gap-2.5">
+						<span class="drag-handle text-zinc-400">⋮⋮</span>
 						<span class="grow">
 							{item.label}
 						</span>

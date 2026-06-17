@@ -14,6 +14,10 @@
 	function listItemAdded(input: string) {
 		listStore.add(input);
 	}
+
+	function listItemMoved(fromKey: string, toKey: string, place: 'before' | 'after') {
+		listStore.moveByKey(fromKey, toKey, place);
+	}
 </script>
 
 <div class="flex flex-col items-center gap-4 p-6">
@@ -21,7 +25,11 @@
 
 	<ListInput inputAcceptedHook={listItemAdded} />
 
-	<ListItems listItems={listStore.value} deleteItemHook={listItemDeleted} />
+	<ListItems
+		listItems={listStore.value}
+		deleteItemHook={listItemDeleted}
+		moveItemHook={listItemMoved}
+	/>
 
 	<button
 		class="mt-4 rounded-md border border-gray-400 bg-gray-200 px-2"

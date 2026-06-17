@@ -51,6 +51,7 @@
 		"vitest": "^4.1.8"
 	},
 	"dependencies": {
+		"@thisux/sveltednd": "^0.4.1",
 		"zod": "^4.4.3"
 	}
 }
