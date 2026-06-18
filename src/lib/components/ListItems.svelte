@@ -1,25 +1,33 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-	import { draggable, droppable, type DragDropState } from '@thisux/sveltednd';
+	import { dndzone, type DndEvent } from 'svelte-dnd-action';
 
 	import ChevronDown from './icons/ChevronDown.svelte';
 	import ChevronRight from './icons/ChevronRight.svelte';
 	import Trash from './icons/Trash.svelte';
+	import type { ListItem } from '$lib/randomizer-store.svelte';
 
 	type Props = {
 		deleteItemHook: (key: string) => void;
-		moveItemHook: (from: string, to: string, place: 'before' | 'after') => void;
-		listItems: { key: string; label: string }[];
+		reorderItemsHook: (items: ListItem[]) => void;
+		listItems: ListItem[];
 	};
 
-	let { listItems, moveItemHook, deleteItemHook }: Props = $props();
+	let { listItems, reorderItemsHook, deleteItemHook }: Props = $props();
 	let listOpen = $state(true);
 
 	let isRemoving = $state(false);
 	let showEmpty = $state(listItems.length === 0);
 
+	const flipDurationMs = 180;
+	let dndItems = $state<ListItem[]>([]);
+	let isDragging = $state(false);
+
 	$effect(() => {
+		if (!isDragging) {
+			dndItems = [...listItems];
+		}
 		if (listItems.length > 0) {
 			showEmpty = false;
 		}
@@ -39,12 +47,15 @@
 		}
 	}
 
-	function handleDrop(state: DragDropState<(typeof listItems)[0]>) {
-		const { draggedItem, targetContainer, dropPosition } = state;
+	function handleDndConsider(event: CustomEvent<DndEvent<ListItem>>) {
+		isDragging = true;
+		dndItems = event.detail.items;
+	}
 
-		if (!targetContainer) return;
-
-		moveItemHook(draggedItem.key, targetContainer, dropPosition ?? 'before');
+	function handleDndFinalize(event: CustomEvent<DndEvent<ListItem>>) {
+		dndItems = event.detail.items;
+		reorderItemsHook(event.detail.items);
+		isDragging = false;
 	}
 </script>
 
@@ -72,39 +83,47 @@
 	</h2>
 
 	{#if listOpen}
-		<div class="flex w-full flex-col items-center px-4">
+		<div class="flex w-full flex-col items-center">
 			{#if showEmpty && !isRemoving}
 				<div in:fade={{ delay: 100 }} class="font-light text-zinc-500 italic">
 					No list items to display
 				</div>
 			{/if}
-			{#each listItems as item, index (item.key)}
-				<div
-					use:draggable={{ container: item.key, dragData: item, handle: '.drag-handle' }}
-					use:droppable={{ container: item.key, callbacks: { onDrop: handleDrop } }}
-					id={index.toString()}
-					animate:flip={{ duration: 180 }}
-					in:fade={{ duration: 150 }}
-					out:fade={{ duration: 150 }}
-					onoutroend={handleOutroEnd}
-					class={['w-full pb-2', index > 0 && 'border-t border-t-zinc-300 ', 'pt-2']}
-					role="listitem"
-				>
-					<p class="flex w-full items-center justify-between gap-2.5">
-						<span class="drag-handle text-zinc-400">⋮⋮</span>
-						<span class="grow">
-							{item.label}
-						</span>
-						<button
-							class="inline-flex items-center"
-							type="button"
-							onclick={() => handleDelete(item.key)}
-						>
-							<Trash className="text-zinc-400" />
-						</button>
-					</p>
-				</div>
-			{/each}
+			<div
+				class="w-full px-4"
+				use:dndzone={{
+					items: dndItems,
+					flipDurationMs,
+					delayTouchStart: true,
+					dropTargetStyle: { outline: 'none' },
+					dropTargetClasses: ['ring-2', 'ring-blue-500', 'ring-inset', 'rounded-md']
+				}}
+				onconsider={handleDndConsider}
+				onfinalize={handleDndFinalize}
+			>
+				{#each dndItems as item, index (item.id)}
+					<div
+						id={index.toString()}
+						animate:flip={{ duration: 180 }}
+						onoutroend={handleOutroEnd}
+						class={['w-full pb-2', index > 0 && 'border-t border-t-zinc-300 ', 'pt-2']}
+						role="listitem"
+					>
+						<p class="flex w-full items-center justify-between gap-2.5">
+							<span class="grow">
+								{item.label}
+							</span>
+							<button
+								class="inline-flex items-center"
+								type="button"
+								onclick={() => handleDelete(item.id)}
+							>
+								<Trash className="text-zinc-400" />
+							</button>
+						</p>
+					</div>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </section>

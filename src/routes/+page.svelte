@@ -7,16 +7,16 @@
 
 	let listStore = listState();
 
-	function listItemDeleted(key: string) {
-		listStore.removeByKey(key);
+	function listItemDeleted(id: string) {
+		listStore.removeByKey(id);
 	}
 
 	function listItemAdded(input: string) {
 		listStore.add(input);
 	}
 
-	function listItemMoved(fromKey: string, toKey: string, place: 'before' | 'after') {
-		listStore.moveByKey(fromKey, toKey, place);
+	function listItemsReordered(items: ListItem[]) {
+		listStore.replaceAll(items);
 	}
 </script>
 
@@ -28,7 +28,7 @@
 	<ListItems
 		listItems={listStore.value}
 		deleteItemHook={listItemDeleted}
-		moveItemHook={listItemMoved}
+		reorderItemsHook={listItemsReordered}
 	/>
 
 	<button

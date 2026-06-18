@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@thisux/sveltednd':
-        specifier: ^0.4.1
-        version: 0.4.1(svelte@5.56.0(@typescript-eslint/types@8.60.0))
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -99,6 +96,9 @@ importers:
       svelte-check:
         specifier: ^4.4.6
         version: 4.5.0(picomatch@4.0.4)(svelte@5.56.0(@typescript-eslint/types@8.60.0))(typescript@6.0.3)
+      svelte-dnd-action:
+        specifier: ^0.9.70
+        version: 0.9.70(svelte@5.56.0(@typescript-eslint/types@8.60.0))
       tailwindcss:
         specifier: ^4.2.2
         version: 4.3.0
@@ -999,11 +999,6 @@ packages:
     engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
-
-  '@thisux/sveltednd@0.4.1':
-    resolution: {integrity: sha512-qRcwstSmYOoGD9h0hPDI6Tm4nBXeMJpCs3vrOhnImi1ObL/D2ScfAmIbL9bMN1l2V51AVvD5l/G/ZJkx8iRbTA==}
-    peerDependencies:
-      svelte: ^5.0.0
 
   '@tybys/wasm-util@0.10.2':
     resolution: {integrity: sha512-RoBvJ2X0wuKlWFIjrwffGw1IqZHKQqzIchKaadZZfnNpsAYp2mM0h36JtPCjNDAHGgYez/15uMBpfGwchhiMgg==}
@@ -2051,6 +2046,11 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: '>=5.0.0'
 
+  svelte-dnd-action@0.9.70:
+    resolution: {integrity: sha512-iVqDAW1PtQArA96dHhM5Lwxj39iKNjIuYE+tqpq9DUaBWfv410SpGGFJ3NzPtvptx+YkXBzMYV3lpey8s07q+w==}
+    peerDependencies:
+      svelte: '>=3.23.0 || ^5.0.0-next.0'
+
   svelte-eslint-parser@1.7.0:
     resolution: {integrity: sha512-TU3DQx7IjUrrxKbET/U639xofp044xLXGGvFaLH9PKQOY5g5iRtmYy2rZB7gOeGRRTP7255AE8fUtIwsp/yOjQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0, pnpm: 10.34.1}
@@ -3000,10 +3000,6 @@ snapshots:
   '@testing-library/user-event@14.6.1(@testing-library/dom@10.4.1)':
     dependencies:
       '@testing-library/dom': 10.4.1
-
-  '@thisux/sveltednd@0.4.1(svelte@5.56.0(@typescript-eslint/types@8.60.0))':
-    dependencies:
-      svelte: 5.56.0(@typescript-eslint/types@8.60.0)
 
   '@tybys/wasm-util@0.10.2':
     dependencies:
@@ -4037,6 +4033,10 @@ snapshots:
       typescript: 6.0.3
     transitivePeerDependencies:
       - picomatch
+
+  svelte-dnd-action@0.9.70(svelte@5.56.0(@typescript-eslint/types@8.60.0)):
+    dependencies:
+      svelte: 5.56.0(@typescript-eslint/types@8.60.0)
 
   svelte-eslint-parser@1.7.0(svelte@5.56.0(@typescript-eslint/types@8.60.0)):
     dependencies:

@@ -1,4 +1,4 @@
-export type ListItem = { label: string; key: string };
+export type ListItem = { label: string; id: string };
 
 function secureRandomIndex(length: number): number | undefined {
 	if (length <= 0) return undefined;
@@ -35,7 +35,7 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		add(itemLabel: string) {
-			items = [...items, { label: itemLabel, key: crypto.randomUUID() }];
+			items = [...items, { label: itemLabel, id: crypto.randomUUID() }];
 		},
 
 		removeAt(index: number) {
@@ -50,16 +50,16 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		removeByKey(key: string) {
-			items = items.filter((item) => item.key !== key);
+			items = items.filter((item) => item.id !== key);
 		},
 
 		indexByKey(key: string) {
-			return items.findIndex((item) => item.key === key);
+			return items.findIndex((item) => item.id === key);
 		},
 
 		moveByKey(fromKey: string, toKey: string, place: 'before' | 'after' = 'before') {
-			const from = items.findIndex((item) => item.key === fromKey);
-			const to = items.findIndex((item) => item.key === toKey);
+			const from = items.findIndex((item) => item.id === fromKey);
+			const to = items.findIndex((item) => item.id === toKey);
 
 			if (from === -1 || to === -1 || from == to) return;
 
@@ -70,6 +70,10 @@ function createListState(initial: ListItem[] = []) {
 			}
 
 			items = moveItem(items, from, nextIndex);
+		},
+
+		replaceAll(nextItems: ListItem[]) {
+			items = [...nextItems]
 		},
 
 		clear() {

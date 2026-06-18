@@ -44,6 +44,7 @@
 		"storybook": "^10.4.1",
 		"svelte": "^5.55.2",
 		"svelte-check": "^4.4.6",
+		"svelte-dnd-action": "^0.9.70",
 		"tailwindcss": "^4.2.2",
 		"typescript": "^6.0.2",
 		"typescript-eslint": "^8.58.1",
@@ -51,7 +52,6 @@
 		"vitest": "^4.1.8"
 	},
 	"dependencies": {
-		"@thisux/sveltednd": "^0.4.1",
 		"zod": "^4.4.3"
 	}
 }
