@@ -19,6 +19,7 @@
 
 	let isRemoving = $state(false);
 	let showEmpty = $state(listItems.length === 0);
+	let listEmpty = $derived(listItems.length === 0)
 
 	const flipDurationMs = 180;
 	let dndItems = $state<ListItem[]>([]);
@@ -61,25 +62,33 @@
 
 <section class="rounted-lg w-full rounded-md border border-zinc-300 bg-zinc-200">
 	<h2 class="m-0">
-		<button
+		<div
 			class={[
 				' flex w-full items-center justify-around ',
 				'gap-2 px-4',
 				'text-md',
 				listOpen && 'border-b border-b-zinc-300'
 			]}
-			type="button"
-			onclick={() => (listOpen = !listOpen)}
 		>
+			<button
+				type="button"
+				class={[
+					'text-xs',
+					'rounded-sm border px-1',
+					listEmpty && 'border-zinc-300 text-zinc-300',
+					!listEmpty && 'border-zinc-500 text-zinc-600'
+				]}
+				>Clear
+			</button>
 			<span>Existing List Items</span>
-			<span aria-hidden="true"
-				>{#if listOpen}
+			<button aria-hidden="true" type="button" onclick={() => (listOpen = !listOpen)}>
+				{#if listOpen}
 					<ChevronDown />
 				{:else}
 					<ChevronRight />
-				{/if}</span
-			>
-		</button>
+				{/if}
+			</button>
+		</div>
 	</h2>
 
 	{#if listOpen}
