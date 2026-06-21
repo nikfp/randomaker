@@ -73,7 +73,7 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		replaceAll(nextItems: ListItem[]) {
-			items = [...nextItems]
+			items = [...nextItems];
 		},
 
 		clear() {
@@ -83,3 +83,5 @@ function createListState(initial: ListItem[] = []) {
 }
 
 export const listState = createListState;
+
+export type ListStore = ReturnType<typeof createListState>;

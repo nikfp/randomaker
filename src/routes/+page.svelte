@@ -5,18 +5,13 @@
 
 	let selection: ListItem | undefined = $state();
 
+	import { setContext } from 'svelte';
 	let listStore = listState();
 
-	function listItemDeleted(id: string) {
-		listStore.removeByKey(id);
-	}
+	setContext('listStore', listStore);
 
 	function listItemAdded(input: string) {
 		listStore.add(input);
-	}
-
-	function listItemsReordered(items: ListItem[]) {
-		listStore.replaceAll(items);
 	}
 </script>
 
@@ -25,11 +20,7 @@
 
 	<ListInput inputAcceptedHook={listItemAdded} />
 
-	<ListItems
-		listItems={listStore.value}
-		deleteItemHook={listItemDeleted}
-		reorderItemsHook={listItemsReordered}
-	/>
+	<ListItems />
 
 	<button
 		class="mt-4 rounded-md border border-gray-400 bg-gray-200 px-2"

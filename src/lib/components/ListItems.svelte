@@ -6,20 +6,15 @@
 	import ChevronDown from './icons/ChevronDown.svelte';
 	import ChevronRight from './icons/ChevronRight.svelte';
 	import Trash from './icons/Trash.svelte';
-	import type { ListItem } from '$lib/randomizer-store.svelte';
+	import type { ListItem, ListStore } from '$lib/randomizer-store.svelte';
+	import { getContext } from 'svelte';
 
-	type Props = {
-		deleteItemHook: (key: string) => void;
-		reorderItemsHook: (items: ListItem[]) => void;
-		listItems: ListItem[];
-	};
+	const listStore = getContext<ListStore>('listStore');
 
-	let { listItems, reorderItemsHook, deleteItemHook }: Props = $props();
 	let listOpen = $state(true);
 
 	let isRemoving = $state(false);
-	let showEmpty = $state(listItems.length === 0);
-	let listEmpty = $derived(listItems.length === 0)
+	let listEmpty = $derived(listStore.value.length === 0);
 
 	const flipDurationMs = 180;
 	let dndItems = $state<ListItem[]>([]);
@@ -27,25 +22,16 @@
 
 	$effect(() => {
 		if (!isDragging) {
-			dndItems = [...listItems];
-		}
-		if (listItems.length > 0) {
-			showEmpty = false;
+			dndItems = [...listStore.value];
 		}
 	});
 
 	function handleDelete(key: string) {
-		isRemoving = true;
-		showEmpty = false;
-		deleteItemHook(key);
+		listStore.removeByKey(key);
 	}
 
-	function handleOutroEnd() {
-		isRemoving = false;
-
-		if (listItems.length === 0) {
-			showEmpty = true;
-		}
+	function handleClear() {
+		listStore.clear();
 	}
 
 	function handleDndConsider(event: CustomEvent<DndEvent<ListItem>>) {
@@ -55,7 +41,7 @@
 
 	function handleDndFinalize(event: CustomEvent<DndEvent<ListItem>>) {
 		dndItems = event.detail.items;
-		reorderItemsHook(event.detail.items);
+		listStore.replaceAll(event.detail.items);
 		isDragging = false;
 	}
 </script>
@@ -72,6 +58,7 @@
 		>
 			<button
 				type="button"
+				onclick={handleClear}
 				class={[
 					'text-xs',
 					'rounded-sm border px-1',
@@ -93,7 +80,7 @@
 
 	{#if listOpen}
 		<div class="flex w-full flex-col items-center">
-			{#if showEmpty && !isRemoving}
+			{#if listEmpty && !isRemoving}
 				<div in:fade={{ delay: 100 }} class="font-light text-zinc-500 italic">
 					No list items to display
 				</div>
@@ -114,7 +101,6 @@
 					<div
 						id={index.toString()}
 						animate:flip={{ duration: 180 }}
-						onoutroend={handleOutroEnd}
 						class={['w-full pb-2', index > 0 && 'border-t border-t-zinc-300 ', 'pt-2']}
 						role="listitem"
 					>
