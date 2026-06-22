@@ -1,18 +1,6 @@
+import { secureRandomIndex, type RandomAPI } from './randomizer-utils';
+
 export type ListItem = { label: string; id: string };
-
-function secureRandomIndex(length: number): number | undefined {
-	if (length <= 0) return undefined;
-
-	const maxUint32 = 0x1_0000_0000;
-	const cutoff = maxUint32 - (maxUint32 % length);
-	const buffer = new Uint32Array(1);
-
-	do {
-		crypto.getRandomValues(buffer);
-	} while (buffer[0] >= cutoff);
-
-	return buffer[0] % length;
-}
 
 function moveItem<T>(arr: T[], from: number, to: number): T[] {
 	if (from === to) return arr;
@@ -26,7 +14,7 @@ function moveItem<T>(arr: T[], from: number, to: number): T[] {
 	return copy;
 }
 
-function createListState(initial: ListItem[] = []) {
+function createListState(initial: ListItem[] = [], randomApi: RandomAPI = crypto) {
 	let items = $state([...initial]);
 
 	return {
@@ -35,7 +23,7 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		add(itemLabel: string) {
-			items = [...items, { label: itemLabel, id: crypto.randomUUID() }];
+			items = [...items, { label: itemLabel, id: randomApi.randomUUID() }];
 		},
 
 		removeAt(index: number) {
@@ -45,10 +33,7 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		random(): ListItem | undefined {
-			console.log('random pick');
-			console.time('random');
-			const index = secureRandomIndex(items.length);
-			console.timeEnd('random');
+			const index = secureRandomIndex(items.length, randomApi);
 			return index === undefined ? undefined : items[index];
 		},
 
