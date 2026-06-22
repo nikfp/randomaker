@@ -1,100 +1,51 @@
 <script lang="ts">
-	import { inputSchema } from '$lib/input-normalizer';
+	import ListInput from '$lib/components/ListInput.svelte';
+	import ListItems from '$lib/components/ListItems.svelte';
+	import SelectionDisplay from '$lib/components/SelectionDisplay.svelte';
 	import { listState, type ListItem } from '$lib/randomizer-store.svelte';
 
-	let inputValue: string | undefined = $state();
 	let selection: ListItem | undefined = $state();
-	let errorMessages: { message: string; key: string }[] | null = $state(null);
 
+	import { setContext } from 'svelte';
 	let listStore = listState();
 
-	let inputEl: HTMLInputElement | undefined;
+	setContext('listStore', listStore);
 
-	async function addToList(event: SubmitEvent) {
-		event.preventDefault();
+	let disablePickButton = $derived(listStore.value.length === 0);
 
-		const parseResult = inputSchema.safeParse({ input: inputValue });
+	function listItemAdded(input: string) {
+		listStore.add(input);
+	}
 
-		if (parseResult.success) {
-			listStore.add(parseResult.data.input);
-			inputValue = '';
-
-			inputEl?.focus();
-
-			errorMessages = null;
-		} else {
-			errorMessages = parseResult.error.issues.map((el) => {
-				return { message: el.message, key: crypto.randomUUID() };
-			});
-		}
+	function pickListItem() {
+		selection = listStore.random();
 	}
 </script>
 
-<div class="flex flex-col items-center p-6">
-	<h1 class="my-4 text-2xl">Randomaker</h1>
+<div class="flex h-screen flex-col items-center bg-gray-100 p-6">
+	<h1 class="mt-4 mb-0 text-2xl">Randomaker</h1>
+	<p class="text-sm font-light text-zinc-500">a simple random items picker</p>
 
-	<form onsubmit={addToList} class="flex w-full max-w-md">
-		<label for="list-item" class="sr-only">List Input</label>
-		<input
-			id="list-item"
-			name="list-item"
-			type="text"
-			placeholder="input a list item here"
-			class={[
-				'flex-1 rounded-l-md border bg-white px-4 py-2.5',
-				'text-sm text-zinc-800 placeholder:text-zinc-400 focus:z-10 focus:border-blue-500',
-				'focus:ring-2 focus:ring-blue-500 focus:outline-none',
-				!errorMessages && 'border-zinc-400',
-				!!errorMessages && 'border-red-500'
-			]}
-			bind:value={inputValue}
-			bind:this={inputEl}
-		/>
-		<button
-			type="submit"
-			class={[
-				'rounded-r-md bg-blue-600 px-4 py-2.5',
-				'text-sm font-medium text-white ',
-				'hover:bg-blue-700 focus:ring-2 focus:outline-none',
-				'focus:ring-blue-500 focus:ring-offset-2'
-			]}>Add to List</button
-		>
-	</form>
+	<ListInput formClass="mt-4" inputAcceptedHook={listItemAdded} />
 
-	{#if errorMessages}
-		{#each errorMessages as error, i (error.key)}
-			<p id={`error-message-${i}`} class="text-red-500">{error.message}</p>
-		{/each}
-	{/if}
-
-	<section class="rounted-lg border border-zinc-300 bg-white">
-		<h2 class="flex">
-			Existing list items:
-			<button>+</button>
-		</h2>
-	</section>
-
-	<div class="mt-4 w-fit border border-zinc-500 p-4">
-		{#each listStore.value as item, index (item.key)}
-			<div id={index.toString()}>
-				<p>{item}</p>
-			</div>
-		{/each}
-	</div>
+	<ListItems sectionClass="mt-4" />
 
 	<button
-		class="mt-4 rounded-md border border-gray-400 bg-gray-200 px-2"
-		onclick={() => {
-			selection = listStore.random();
-			console.log(selection);
-		}}
+		class={[
+			'mt-4 rounded-md border border-gray-400 bg-gray-200 px-2',
+			'hover:cursor-pointer hover:border-blue-500 active:border-blue-500 ',
+			'hover:ring-blue-500 active:ring-blue-500',
+			'disabled:border-gray-300 disabled:text-zinc-400'
+		]}
+		onclick={pickListItem}
+		disabled={disablePickButton}
 	>
-		Pick a random entry
+		{#if disablePickButton}
+			Enter some items!
+		{:else}
+			Pick a list item!
+		{/if}
 	</button>
 
-	<div>
-		<p>
-			{selection}
-		</p>
-	</div>
+	<SelectionDisplay {selection} />
 </div>

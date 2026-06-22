@@ -1,4 +1,4 @@
-export type ListItem = { label: string; key: string };
+export type ListItem = { label: string; id: string };
 
 function secureRandomIndex(length: number): number | undefined {
 	if (length <= 0) return undefined;
@@ -14,6 +14,18 @@ function secureRandomIndex(length: number): number | undefined {
 	return buffer[0] % length;
 }
 
+function moveItem<T>(arr: T[], from: number, to: number): T[] {
+	if (from === to) return arr;
+	if (from < 0 || from >= arr.length) return arr;
+	if (to < 0 || to >= arr.length) return arr;
+
+	const copy = [...arr];
+	const [item] = copy.splice(from, 1);
+	copy.splice(to, 0, item);
+
+	return copy;
+}
+
 function createListState(initial: ListItem[] = []) {
 	let items = $state([...initial]);
 
@@ -23,7 +35,7 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		add(itemLabel: string) {
-			items.push({ label: itemLabel, key: crypto.randomUUID() });
+			items = [...items, { label: itemLabel, id: crypto.randomUUID() }];
 		},
 
 		removeAt(index: number) {
@@ -33,8 +45,38 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		random(): ListItem | undefined {
+			console.log('random pick');
+			console.time('random');
 			const index = secureRandomIndex(items.length);
+			console.timeEnd('random');
 			return index === undefined ? undefined : items[index];
+		},
+
+		removeByKey(key: string) {
+			items = items.filter((item) => item.id !== key);
+		},
+
+		indexByKey(key: string) {
+			return items.findIndex((item) => item.id === key);
+		},
+
+		moveByKey(fromKey: string, toKey: string, place: 'before' | 'after' = 'before') {
+			const from = items.findIndex((item) => item.id === fromKey);
+			const to = items.findIndex((item) => item.id === toKey);
+
+			if (from === -1 || to === -1 || from == to) return;
+
+			let nextIndex = place === 'after' ? to + 1 : to;
+
+			if (from < nextIndex) {
+				nextIndex -= 1;
+			}
+
+			items = moveItem(items, from, nextIndex);
+		},
+
+		replaceAll(nextItems: ListItem[]) {
+			items = [...nextItems];
 		},
 
 		clear() {
@@ -44,3 +86,5 @@ function createListState(initial: ListItem[] = []) {
 }
 
 export const listState = createListState;
+
+export type ListStore = ReturnType<typeof createListState>;
