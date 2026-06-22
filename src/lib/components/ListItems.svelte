@@ -9,6 +9,8 @@
 	import type { ListItem, ListStore } from '$lib/randomizer-store.svelte';
 	import { getContext } from 'svelte';
 
+	let { sectionClass = '' }: { sectionClass?: string } = $props();
+
 	const listStore = getContext<ListStore>('listStore');
 
 	let listOpen = $state(true);
@@ -46,7 +48,9 @@
 	}
 </script>
 
-<section class="rounted-lg w-full rounded-md border border-zinc-300 bg-zinc-200">
+<section
+	class={['rounted-lg w-full rounded-md border', 'border-zinc-300 bg-zinc-200', sectionClass]}
+>
 	<h2 class="m-0">
 		<div
 			class={[
@@ -67,7 +71,7 @@
 				]}
 				>Clear
 			</button>
-			<span>Existing List Items</span>
+			<span>Manage list items</span>
 			<button aria-hidden="true" type="button" onclick={() => (listOpen = !listOpen)}>
 				{#if listOpen}
 					<ChevronDown />

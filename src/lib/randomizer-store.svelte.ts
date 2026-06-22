@@ -45,7 +45,10 @@ function createListState(initial: ListItem[] = []) {
 		},
 
 		random(): ListItem | undefined {
+			console.log('random pick');
+			console.time('random');
 			const index = secureRandomIndex(items.length);
+			console.timeEnd('random');
 			return index === undefined ? undefined : items[index];
 		},
 

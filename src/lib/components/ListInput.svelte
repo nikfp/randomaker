@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { inputSchema } from '$lib/input-normalizer';
 	let {
-		inputAcceptedHook
+		inputAcceptedHook,
+		formClass = ""
 	}: {
 		inputAcceptedHook: (input: string) => void;
+		formClass?: string;
 	} = $props();
 
 	let inputValue: string | undefined = $state();
@@ -29,7 +31,7 @@
 	}
 </script>
 
-<form onsubmit={addToList} class="flex w-full max-w-md">
+<form onsubmit={addToList} class={['flex w-full max-w-md', formClass]}>
 	<label for="list-item" class="sr-only">List Input</label>
 	<input
 		id="list-item"
