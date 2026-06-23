@@ -16,3 +16,15 @@ export function secureRandomIndex(length: number, randomizer: RandomAPI): number
 
 	return buffer[0] % length;
 }
+
+export function moveItem<T>(arr: T[], from: number, to: number): T[] {
+	if (from === to) return arr;
+	if (from < 0 || from >= arr.length) return arr;
+	if (to < 0 || to >= arr.length) return arr;
+
+	const copy = [...arr];
+	const [item] = copy.splice(from, 1);
+	copy.splice(to, 0, item);
+
+	return copy;
+}
