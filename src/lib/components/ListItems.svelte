@@ -7,11 +7,8 @@
 	import ChevronRight from './icons/ChevronRight.svelte';
 	import Trash from './icons/Trash.svelte';
 	import type { ListItem, ListStore } from '$lib/randomizer-store.svelte';
-	import { getContext } from 'svelte';
 
-	let { sectionClass = '' }: { sectionClass?: string } = $props();
-
-	const listStore = getContext<ListStore>('listStore');
+	let { sectionClass = '', listStore }: { sectionClass?: string; listStore: ListStore } = $props();
 
 	let listOpen = $state(true);
 

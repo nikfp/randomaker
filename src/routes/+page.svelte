@@ -13,10 +13,6 @@
 
 	let disablePickButton = $derived(listStore.value.length === 0);
 
-	function listItemAdded(input: string) {
-		listStore.add(input);
-	}
-
 	function pickListItem() {
 		selection = listStore.random();
 	}
@@ -26,9 +22,9 @@
 	<h1 class="mt-4 mb-0 text-2xl">Randomaker</h1>
 	<p class="text-sm font-light text-zinc-500">a simple random items picker</p>
 
-	<ListInput formClass="mt-4" inputAcceptedHook={listItemAdded} />
+	<ListInput formClass="mt-4" {listStore} />
 
-	<ListItems sectionClass="mt-4" />
+	<ListItems {listStore} sectionClass="mt-4" />
 
 	<button
 		class={[

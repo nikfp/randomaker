@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { inputSchema } from '$lib/input-normalizer';
+	import type { ListStore } from '$lib/randomizer-store.svelte';
 	let {
-		inputAcceptedHook,
-		formClass = ""
+		listStore,
+		formClass = ''
 	}: {
-		inputAcceptedHook: (input: string) => void;
+		listStore: ListStore;
 		formClass?: string;
 	} = $props();
 
@@ -17,7 +18,7 @@
 		const parseResult = inputSchema.safeParse({ input: inputValue });
 
 		if (parseResult.success) {
-			inputAcceptedHook(parseResult.data.input);
+			listStore.add(parseResult.data.input);
 			inputValue = '';
 
 			inputEl?.focus();
