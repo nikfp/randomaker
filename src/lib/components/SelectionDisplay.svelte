@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { ListItem } from '$lib/randomizer-store.svelte';
 	import { fade } from 'svelte/transition';
+	import type { SelectionDisplayProps } from './selection-display.types';
+	import type { ListItem } from '$lib/randomizer-store.svelte';
 
-	let { selection }: { selection: ListItem | undefined } = $props();
+	let { selection }: SelectionDisplayProps = $props();
 
 	let duration = 150;
 
@@ -49,7 +50,7 @@
 	>
 		{#if selection}You picked:{:else}Nothing picked yet!{/if}
 	</span>
-	<p class="min-h-[1.5em] text-center">
+	<p class="min-h-[1.5em] text-center" aria-label="selection display">
 		{#if displayedSelection}
 			<span class="inline-block" in:fade={{ duration }} out:fade={{ duration }}>
 				{displayedSelection.label}

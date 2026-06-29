@@ -1,27 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { moveItem, secureRandomIndex, type RandomAPI } from './randomizer-utils.ts';
-
-export function createRandomAPI(sequence: number[] = [], uuids: string[] = []) {
-  let randomIndex = 0;
-  let uuidIndex = 0;
-
-  const randomizer: RandomAPI = {
-    randomUUID: vi.fn(() => uuids[uuidIndex++] ?? `uuid-${uuidIndex - 1}`),
-
-    getRandomValues<T extends Exclude<BufferSource, ArrayBuffer>>(array: T): T {
-      if (!(array instanceof Uint32Array)) {
-        throw new Error('Test helper only supports Uint32Array');
-      }
-
-      const typed = array as unknown as Uint32Array;
-      typed[0] = sequence[randomIndex++] ?? 0;
-
-      return array;
-    }
-  };
-
-  return { randomizer };
-}
+import { moveItem, secureRandomIndex } from './randomizer-utils.ts';
+import { createRandomAPI } from './randomizer-utils-test-helper.ts';
 
 describe('secureRandomIndex', () => {
 	it('returns undefined for length 0', () => {

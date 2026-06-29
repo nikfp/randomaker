@@ -33,11 +33,12 @@
 </script>
 
 <form onsubmit={addToList} class={['flex w-full max-w-md', formClass]}>
-	<label for="list-item" class="sr-only">List Input</label>
+	<label for="list-input" class="sr-only">List Input</label>
 	<input
-		id="list-item"
-		name="list-item"
+		id="list-input"
+		name="list-input"
 		type="text"
+		aria-label="list-input"
 		placeholder="input a list item here"
 		class={[
 			'flex-1 rounded-l-md border bg-white px-4 py-2.5',

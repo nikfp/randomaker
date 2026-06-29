@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { createRandomAPI } from './randomizer-utils.test';
+import { createRandomAPI } from './randomizer-utils-test-helper';
 import { listState } from './randomizer-store.svelte';
 
 describe('createListState', () => {
 	it('starts with the initial items', () => {
 		const initial = [
 			{ id: 'a', label: 'One' },
-			{ id: 'b', label: 'Two' }
+			{ id: 'b', label: 'Two' },
 		];
 
 		const store = listState(initial);
