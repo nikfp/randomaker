@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import {vi} from 'vitest'
+import { vi } from 'vitest';
 
 if (!Element.prototype.animate) {
 	Element.prototype.animate = vi.fn().mockImplementation(() => {
@@ -25,3 +25,6 @@ if (!Element.prototype.animate) {
 	}) as typeof Element.prototype.animate;
 }
 
+if (!Element.prototype.getAnimations) {
+	Element.prototype.getAnimations = vi.fn().mockReturnValue([]);
+}
