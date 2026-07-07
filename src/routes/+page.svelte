@@ -30,6 +30,7 @@
 			'hover:ring-blue-500 active:ring-blue-500',
 			'disabled:border-gray-300 disabled:text-zinc-400'
 		]}
+		aria-label="pick button"
 		onclick={pickListItem}
 		disabled={disablePickButton}
 	>

@@ -9,7 +9,10 @@ describe('+page.svelte', () => {
 
 		expect(screen.getByRole('heading', { name: /randomaker/i })).toBeInTheDocument();
 
-		expect(screen.getByRole('button', { name: /enter some items!/i })).toBeDisabled();
+		expect(screen.getByRole('button', { name: /pick button/i })).toBeDisabled();
+
+		//TODO get the picker button and check the text
+		//TODO get the picker button and check it's disabled
 	});
 
 	it('lest the user add items and enables picking', async () => {
@@ -22,6 +25,8 @@ describe('+page.svelte', () => {
 		await user.keyboard('{Enter}');
 
 		expect(screen.getByText(/banana/i)).toBeInTheDocument();
+
+		//TODO check pick button is enabled
 	});
 
 	it('shows a selected item after clicking pick', async () => {
