@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, it, expect } from 'vitest';
 import SelectionDisplay from './SelectionDisplay.svelte';
-import type { SelectionDisplayProps } from './selection-display.types';
+import type { SelectionDisplayProps } from './selection-display.types.ts';
 
 describe('SelectionDisplay', () => {
 	it('shows the empty state when no selection exists', () => {
