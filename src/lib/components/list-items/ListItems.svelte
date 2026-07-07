@@ -3,12 +3,13 @@
 	import { flip } from 'svelte/animate';
 	import { dndzone, type DndEvent } from 'svelte-dnd-action';
 
-	import ChevronDown from './icons/ChevronDown.svelte';
-	import ChevronRight from './icons/ChevronRight.svelte';
-	import Trash from './icons/Trash.svelte';
-	import type { ListItem, ListStore } from '$lib/randomizer-store.svelte';
+	import ChevronDown from '$lib/components/icons/ChevronDown.svelte';
+	import ChevronRight from '$lib/components/icons/ChevronRight.svelte';
+	import Trash from '$lib/components/icons/Trash.svelte';
+	import type { ListItem } from '$lib/randomizer-store.svelte';
+	import type { ListItemsProps } from './list-items.types';
 
-	let { sectionClass = '', listStore }: { sectionClass?: string; listStore: ListStore } = $props();
+	let { sectionClass = '', listStore }: ListItemsProps = $props();
 
 	let listOpen = $state(true);
 
@@ -60,6 +61,8 @@
 			<button
 				type="button"
 				onclick={handleClear}
+				aria-label="Clear Items"
+				disabled={listEmpty}
 				class={[
 					'text-xs',
 					'rounded-sm border px-1',
@@ -69,9 +72,14 @@
 				>Clear
 			</button>
 			<span>Manage list items</span>
-			<button aria-hidden="true" type="button" onclick={() => (listOpen = !listOpen)}>
+			<button
+				aria-label={listOpen ? 'Collapse List' : 'Expand List'}
+				aria-expanded={listOpen}
+				type="button"
+				onclick={() => (listOpen = !listOpen)}
+			>
 				{#if listOpen}
-					<ChevronDown />
+					<ChevronDown aria-hidden="true"/>
 				{:else}
 					<ChevronRight />
 				{/if}
@@ -100,7 +108,7 @@
 			>
 				{#each dndItems as item, index (item.id)}
 					<div
-						id={index.toString()}
+						id={item.id}
 						animate:flip={{ duration: 180 }}
 						class={['w-full pb-2', index > 0 && 'border-t border-t-zinc-300 ', 'pt-2']}
 						role="listitem"
@@ -112,6 +120,7 @@
 							<button
 								class="inline-flex items-center"
 								type="button"
+								aria-label={`Delete ${item.label}`}
 								onclick={() => handleDelete(item.id)}
 							>
 								<Trash className="text-zinc-400" />

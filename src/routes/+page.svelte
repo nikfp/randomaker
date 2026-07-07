@@ -1,15 +1,12 @@
 <script lang="ts">
-	import ListInput from '$lib/components/ListInput.svelte';
-	import ListItems from '$lib/components/ListItems.svelte';
-	import SelectionDisplay from '$lib/components/SelectionDisplay.svelte';
+	import ListInput from '$lib/components/list-input/ListInput.svelte';
+	import ListItems from '$lib/components/list-items/ListItems.svelte';
+	import SelectionDisplay from '$lib/components/selection-display/SelectionDisplay.svelte';
 	import { listState, type ListItem } from '$lib/randomizer-store.svelte';
 
 	let selection: ListItem | undefined = $state();
 
-	import { setContext } from 'svelte';
 	let listStore = listState();
-
-	setContext('listStore', listStore);
 
 	let disablePickButton = $derived(listStore.value.length === 0);
 
