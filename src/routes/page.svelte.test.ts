@@ -9,13 +9,15 @@ describe('+page.svelte', () => {
 
 		expect(screen.getByRole('heading', { name: /randomaker/i })).toBeInTheDocument();
 
-		expect(screen.getByRole('button', { name: /pick button/i })).toBeDisabled();
-
+		const pickButton = screen.getByRole('button', { name: /pick button/i });
+		expect(pickButton).toBeDisabled();
 		//TODO get the picker button and check the text
+		expect(within(pickButton).queryByText(/enter some items!/i)).not.toBeNull();
+
 		//TODO get the picker button and check it's disabled
 	});
 
-	it('lest the user add items and enables picking', async () => {
+	it('lets the user add items and enables picking', async () => {
 		const user = userEvent.setup();
 		render(Page);
 
@@ -40,7 +42,7 @@ describe('+page.svelte', () => {
 		await user.type(input, 'Apple');
 		await user.keyboard('{Enter}');
 
-		await user.click(screen.getByRole('button', { name: /pick a list item!/i }));
+		await user.click(screen.getByRole('button', { name: /pick button/i }));
 
 		const selectionDisplay = screen.getByLabelText(/selection display/i);
 
