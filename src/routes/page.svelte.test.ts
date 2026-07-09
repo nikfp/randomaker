@@ -26,7 +26,6 @@ describe('+page.svelte', () => {
 
 		expect(screen.getByText(/banana/i)).toBeInTheDocument();
 
-		//TODO check pick button is enabled
 		const pickButton = screen.getByRole('button', { name: /pick button/i });
 
 		expect(pickButton).toBeEnabled()
