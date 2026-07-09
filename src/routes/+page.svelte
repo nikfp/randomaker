@@ -1,21 +1,14 @@
 <script lang="ts">
-	import ListInput from '$lib/components/ListInput.svelte';
-	import ListItems from '$lib/components/ListItems.svelte';
-	import SelectionDisplay from '$lib/components/SelectionDisplay.svelte';
+	import ListInput from '$lib/components/list-input/ListInput.svelte';
+	import ListItems from '$lib/components/list-items/ListItems.svelte';
+	import SelectionDisplay from '$lib/components/selection-display/SelectionDisplay.svelte';
 	import { listState, type ListItem } from '$lib/randomizer-store.svelte';
 
 	let selection: ListItem | undefined = $state();
 
-	import { setContext } from 'svelte';
 	let listStore = listState();
 
-	setContext('listStore', listStore);
-
 	let disablePickButton = $derived(listStore.value.length === 0);
-
-	function listItemAdded(input: string) {
-		listStore.add(input);
-	}
 
 	function pickListItem() {
 		selection = listStore.random();
@@ -26,9 +19,9 @@
 	<h1 class="mt-4 mb-0 text-2xl">Randomaker</h1>
 	<p class="text-sm font-light text-zinc-500">a simple random items picker</p>
 
-	<ListInput formClass="mt-4" inputAcceptedHook={listItemAdded} />
+	<ListInput formClass="mt-4" {listStore} />
 
-	<ListItems sectionClass="mt-4" />
+	<ListItems {listStore} sectionClass="mt-4" />
 
 	<button
 		class={[
@@ -37,6 +30,7 @@
 			'hover:ring-blue-500 active:ring-blue-500',
 			'disabled:border-gray-300 disabled:text-zinc-400'
 		]}
+		aria-label="pick button"
 		onclick={pickListItem}
 		disabled={disablePickButton}
 	>
