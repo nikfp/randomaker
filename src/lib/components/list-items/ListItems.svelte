@@ -50,7 +50,7 @@
 	class={[
 		'rounted-lg w-full rounded-md border',
 		'border-zinc-300 bg-zinc-200',
-		'bg-zinc-700 dark:border-zinc-600',
+		'dark:bg-zinc-700 dark:border-zinc-600',
 		'dark:text-zinc-300',
 		sectionClass
 	]}
