@@ -47,7 +47,13 @@
 </script>
 
 <section
-	class={['rounted-lg w-full rounded-md border', 'border-zinc-300 bg-zinc-200', sectionClass]}
+	class={[
+		'rounted-lg w-full rounded-md border',
+		'border-zinc-300 bg-zinc-200',
+		'bg-zinc-700 dark:border-zinc-600',
+		'dark:text-zinc-300',
+		sectionClass
+	]}
 >
 	<h2 class="m-0">
 		<div
@@ -55,7 +61,7 @@
 				' flex w-full items-center justify-around ',
 				'gap-2 px-4',
 				'text-md',
-				listOpen && 'border-b border-b-zinc-300'
+				listOpen && 'border-b border-b-zinc-300 dark:border-b-zinc-600'
 			]}
 		>
 			<button
@@ -66,8 +72,8 @@
 				class={[
 					'text-xs',
 					'rounded-sm border px-1',
-					listEmpty && 'border-zinc-300 text-zinc-300',
-					!listEmpty && 'border-zinc-500 text-zinc-600'
+					listEmpty && 'border-zinc-300 text-zinc-300 dark:border-zinc-600 dark:text-zinc-500',
+					!listEmpty && 'border-zinc-500 text-zinc-600 dark:border-zinc-400 dark:text-zinc-400'
 				]}
 				>Clear
 			</button>
@@ -77,11 +83,12 @@
 				aria-expanded={listOpen}
 				type="button"
 				onclick={() => (listOpen = !listOpen)}
+				class="text-inherit dark:text-zinc-300"
 			>
 				{#if listOpen}
-					<ChevronDown aria-hidden="true"/>
+					<ChevronDown aria-hidden="true" />
 				{:else}
-					<ChevronRight />
+					<ChevronRight aria-hidden="true" />
 				{/if}
 			</button>
 		</div>
@@ -101,7 +108,13 @@
 					flipDurationMs,
 					delayTouchStart: true,
 					dropTargetStyle: { outline: 'none' },
-					dropTargetClasses: ['ring-2', 'ring-blue-500', 'ring-inset', 'rounded-md']
+					dropTargetClasses: [
+						'ring-2',
+						'ring-blue-500',
+						'dark:ring-blue-700',
+						'ring-inset',
+						'rounded-md'
+					]
 				}}
 				onconsider={handleDndConsider}
 				onfinalize={handleDndFinalize}
@@ -110,7 +123,11 @@
 					<div
 						id={item.id}
 						animate:flip={{ duration: 180 }}
-						class={['w-full pb-2', index > 0 && 'border-t border-t-zinc-300 ', 'pt-2']}
+						class={[
+							'w-full pb-2',
+							index > 0 && 'border-t border-t-zinc-300 dark:border-t-zinc-600 ',
+							'pt-2'
+						]}
 						role="listitem"
 					>
 						<p class="flex w-full items-center justify-between gap-2.5">

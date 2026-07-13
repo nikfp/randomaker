@@ -34,18 +34,18 @@
 <div
 	class={[
 		'relative mt-6 w-full px-4 pt-6 pb-4',
-		'rounded-md border border-blue-500',
-		'bg-white',
+		'rounded-md border border-blue-500 dark:border-blue-800',
+		'bg-white dark:bg-zinc-700 dark:text-zinc-300',
 		'flex flex-col items-center'
 	]}
 >
 	<span
 		class={[
-			'absolute block bg-gray-100 px-4 ',
-			'rounded-md border border-blue-500',
+			'absolute block bg-gray-100 dark:bg-zinc-700 px-4 ',
+			'rounded-md border border-blue-500 dark:border-blue-700',
 			'top-0 left-1/2',
 			'-translate-x-1/2 -translate-y-1/2',
-			'text-sm font-light text-zinc-500 '
+			'text-sm font-light text-zinc-500 dark:text-zinc-400'
 		]}
 	>
 		{#if selection}You picked:{:else}Nothing picked yet!{/if}
