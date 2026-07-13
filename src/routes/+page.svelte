@@ -25,10 +25,13 @@
 
 	<button
 		class={[
-			'mt-4 rounded-md border border-gray-400 bg-gray-200 px-2',
+			'mt-4 rounded-md border px-2',
+			'border-gray-400 bg-gray-200',
+			'dark:border-zinc-500 dark:bg-zinc-600 dark:text-zinc-300',
 			'hover:cursor-pointer hover:border-blue-500 active:border-blue-500 ',
 			'hover:ring-blue-500 active:ring-blue-500',
-			'disabled:border-gray-300 disabled:text-zinc-400'
+			'disabled:border-gray-300 disabled:text-zinc-400',
+			'dark:disabled:border-zinc-600 dark:disabled:text-zinc-500'
 		]}
 		aria-label="pick button"
 		onclick={pickListItem}
