@@ -45,7 +45,7 @@
 			'rounded-md border border-blue-500 dark:border-blue-700',
 			'top-0 left-1/2',
 			'-translate-x-1/2 -translate-y-1/2',
-			'text-sm font-light text-zinc-500 dark:text-zinc-300'
+			'text-sm font-light text-zinc-500 dark:text-zinc-400'
 		]}
 	>
 		{#if selection}You picked:{:else}Nothing picked yet!{/if}
