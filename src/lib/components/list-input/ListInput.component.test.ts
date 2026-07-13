@@ -5,6 +5,26 @@ import userEvent from '@testing-library/user-event';
 import ListInput from './ListInput.svelte';
 
 describe('ListInput', () => {
+	it('shows error message when input too short', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+
+		render(ListInput, {
+			props: {
+				listStore: store
+			}
+		});
+
+		expect(screen.getByText(/add to list/i)).toBeInTheDocument();
+		expect(screen.queryByText(/input too short/i)).toBeNull()
+
+		const button = screen.getByRole('button', { name: /add to list/i });
+		
+		await user.click(button);
+
+		expect(await screen.findByText(/input too short/i)).toBeInTheDocument()
+	});
+
 	it('adds text to store as expected', async () => {
 		const user = userEvent.setup();
 		const store = listState();
@@ -29,6 +49,6 @@ describe('ListInput', () => {
 		expect(store.value).toHaveLength(1);
 		expect(store.value[0].label).equals(inputValue);
 
-		expect(input).toHaveValue("")
+		expect(input).toHaveValue('');
 	});
 });

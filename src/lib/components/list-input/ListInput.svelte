@@ -9,7 +9,7 @@
 		formClass?: string;
 	} = $props();
 
-	let inputValue: string | undefined = $state();
+	let inputValue: string = $state('');
 	let inputEl: HTMLInputElement | undefined;
 	let errorMessages: { message: string; key: string }[] | null = $state(null);
 	async function addToList(event: SubmitEvent) {
