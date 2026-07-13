@@ -41,8 +41,10 @@
 		aria-label="list-input"
 		placeholder="input a list item here"
 		class={[
-			'flex-1 rounded-l-md border bg-white px-4 py-2.5',
-			'text-sm text-zinc-800 placeholder:text-zinc-400 focus:z-10 focus:border-blue-500',
+			'flex-1 rounded-l-md border bg-white px-4 py-2.5 text-sm',
+			'text-zinc-800 placeholder:text-zinc-400 focus:z-10 focus:border-blue-500',
+			'dark:bg-zinc-700 dark:text-zinc-200',
+			'dark:placeholder:text-zinc-500',
 			'focus:ring-2 focus:ring-blue-500 focus:outline-none',
 			!errorMessages && 'border-zinc-400',
 			!!errorMessages && 'border-red-500'

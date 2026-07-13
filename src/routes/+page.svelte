@@ -15,9 +15,9 @@
 	}
 </script>
 
-<div class="flex h-screen flex-col items-center bg-gray-100 p-6">
-	<h1 class="mt-4 mb-0 text-2xl">Randomaker</h1>
-	<p class="text-sm font-light text-zinc-500">a simple random items picker</p>
+<div class="flex h-screen flex-col items-center bg-gray-100 dark:bg-zinc-800 p-6">
+	<h1 class="mt-4 mb-0 text-2xl dark:text-zinc-200">Randomaker</h1>
+	<p class="text-sm font-light text-zinc-500 dark:text-zinc-400">a simple random items picker</p>
 
 	<ListInput formClass="mt-4" {listStore} />
 
