@@ -32,7 +32,7 @@
 	}
 </script>
 
-<form onsubmit={addToList} class={['flex w-full max-w-md', formClass]}>
+<form onsubmit={addToList} class={['flex w-full max-w-md lg:max-w-lg', formClass]}>
 	<label for="list-input" class="sr-only">List Input</label>
 	<input
 		id="list-input"
@@ -41,12 +41,13 @@
 		aria-label="list-input"
 		placeholder="input a list item here"
 		class={[
-			'flex-1 rounded-l-md border bg-white px-4 py-2.5 text-sm',
+			'min-w-0 flex-1 rounded-l-md border bg-white lg:rounded-l-lg',
+			'px-4 py-2.5 text-sm lg:px-6 lg:py-3.5 lg:text-base',
 			'text-zinc-800 placeholder:text-zinc-400 focus:z-10 focus:border-blue-500',
 			'dark:bg-zinc-700 dark:text-zinc-200',
 			'dark:placeholder:text-zinc-500',
 			'focus:ring-2 focus:ring-blue-500 focus:outline-none',
-			'dark:focus:ring-blue-600 dark:border-zinc-600',
+			'dark:border-zinc-600 dark:focus:ring-blue-600',
 			!errorMessages && 'border-zinc-400',
 			!!errorMessages && 'border-red-500 dark:border-red-700'
 		]}
@@ -56,11 +57,13 @@
 	<button
 		type="submit"
 		class={[
-			'rounded-r-md px-4 py-2.5',
+			'rounded-r-md lg:rounded-r-lg',
+			'px-3 py-2.5 lg:px-5 lg:py-3.5',
+			'shrink-0 whitespace-nowrap',
 			'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
-			"dark:bg-blue-800 dark:hover:bg-blue-600",
+			'dark:bg-blue-800 dark:hover:bg-blue-600',
 			'dark:focus:ring-blue-600',
-			'text-sm font-medium',
+			'text-xs font-medium sm:text-sm lg:text-base',
 			'text-white dark:text-zinc-300',
 			'focus:ring-2 focus:outline-none',
 			'focus:ring-offset-2'
