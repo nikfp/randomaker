@@ -16,16 +16,19 @@
 </script>
 
 <div class="flex h-screen flex-col items-center bg-gray-100 p-6 dark:bg-zinc-800">
-	<h1 class="mt-4 mb-0 text-2xl dark:text-zinc-200">Randomaker</h1>
-	<p class="text-sm font-light text-zinc-500 dark:text-zinc-400">a simple random items picker</p>
+	<h1 class="mt-4 mb-0 text-2xl lg:mt-6 lg:text-3xl dark:text-zinc-200">Randomaker</h1>
+	<p class="lg:text-md text-sm font-light text-zinc-500 dark:text-zinc-400">
+		a simple random items picker
+	</p>
 
-	<ListInput formClass="mt-4" {listStore} />
+	<ListInput formClass="mt-4 lg:mt-6" {listStore} />
 
-	<ListItems {listStore} sectionClass="mt-4" />
+	<ListItems {listStore} sectionClass="mt-4 lg:mt-6" />
 
 	<button
 		class={[
-			'mt-4 rounded-md border px-2',
+			'mt-4 rounded-md border px-2 lg:mt-6 lg:rounded-lg',
+			'text-base sm:text-lg lg:text-2xl',
 			'border-gray-400 bg-zinc-200',
 			'dark:border-zinc-500 dark:bg-zinc-700 dark:text-zinc-300',
 			'hover:cursor-pointer hover:border-blue-500 active:border-blue-500 ',

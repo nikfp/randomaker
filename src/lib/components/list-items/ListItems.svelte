@@ -48,9 +48,10 @@
 
 <section
 	class={[
-		'rounted-lg w-full rounded-md border',
+		'max-w-md lg:max-w-lg',
+		'w-full rounded-md border lg:rounded-lg',
 		'border-zinc-300 bg-zinc-200',
-		'dark:bg-zinc-700 dark:border-zinc-600',
+		'dark:border-zinc-600 dark:bg-zinc-700',
 		'dark:text-zinc-300',
 		sectionClass
 	]}
@@ -70,14 +71,14 @@
 				aria-label="Clear Items"
 				disabled={listEmpty}
 				class={[
-					'text-xs',
+					'text-xs lg:text-sm',
 					'rounded-sm border px-1',
 					listEmpty && 'border-zinc-300 text-zinc-300 dark:border-zinc-600 dark:text-zinc-500',
 					!listEmpty && 'border-zinc-500 text-zinc-600 dark:border-zinc-400 dark:text-zinc-400'
 				]}
 				>Clear
 			</button>
-			<span>Manage list items</span>
+			<span class="text-base lg:text-lg">Manage list items</span>
 			<button
 				aria-label={listOpen ? 'Collapse List' : 'Expand List'}
 				aria-expanded={listOpen}
@@ -97,7 +98,7 @@
 	{#if listOpen}
 		<div class="flex w-full flex-col items-center">
 			{#if listEmpty && !isRemoving}
-				<div in:fade={{ delay: 100 }} class="font-light text-zinc-500 italic">
+				<div in:fade={{ delay: 100 }} class="lg:text-md text-sm font-light text-zinc-500 italic">
 					No list items to display
 				</div>
 			{/if}
@@ -124,14 +125,14 @@
 						id={item.id}
 						animate:flip={{ duration: 180 }}
 						class={[
-							'w-full pb-2',
+							'w-full py-2 lg:py-3',
 							index > 0 && 'border-t border-t-zinc-300 dark:border-t-zinc-600 ',
-							'pt-2'
 						]}
 						role="listitem"
 					>
-						<p class="flex w-full items-center justify-between gap-2.5">
-							<span class="grow">
+						<p class={['flex w-full items-center justify-between gap-2.5', 
+						'text-base lg:text-lg']}>
+							<span class="grow pl-1">
 								{item.label}
 							</span>
 							<button
