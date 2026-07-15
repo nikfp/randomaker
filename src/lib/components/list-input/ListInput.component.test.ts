@@ -16,13 +16,13 @@ describe('ListInput', () => {
 		});
 
 		expect(screen.getByText(/add to list/i)).toBeInTheDocument();
-		expect(screen.queryByText(/input too short/i)).toBeNull()
+		expect(screen.queryByText(/input too short/i)).toBeNull();
 
 		const button = screen.getByRole('button', { name: /add to list/i });
-		
+
 		await user.click(button);
 
-		expect(await screen.findByText(/input too short/i)).toBeInTheDocument()
+		expect(await screen.findByText(/input too short/i)).toBeInTheDocument();
 	});
 
 	it('adds text to store as expected', async () => {

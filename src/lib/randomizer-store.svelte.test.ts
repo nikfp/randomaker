@@ -6,7 +6,7 @@ describe('createListState', () => {
 	it('starts with the initial items', () => {
 		const initial = [
 			{ id: 'a', label: 'One' },
-			{ id: 'b', label: 'Two' },
+			{ id: 'b', label: 'Two' }
 		];
 
 		const store = listState(initial);

@@ -28,8 +28,8 @@ describe('+page.svelte', () => {
 
 		const pickButton = screen.getByRole('button', { name: /pick button/i });
 
-		expect(pickButton).toBeEnabled()
-		expect(within(pickButton).getByText(/pick a list item!/i)).not.toBeNull()
+		expect(pickButton).toBeEnabled();
+		expect(within(pickButton).getByText(/pick a list item!/i)).not.toBeNull();
 	});
 
 	it('shows a selected item after clicking pick', async () => {

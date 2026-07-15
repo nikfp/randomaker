@@ -91,20 +91,19 @@ describe('ListItems', () => {
 		render(ListItems, { props });
 
 		const clearButton = screen.getByRole('button', { name: /clear/i });
-    expect(clearButton).toBeDisabled()
+		expect(clearButton).toBeDisabled();
 
 		store.add('Apple');
 		expect(await screen.findByText(/apple/i)).toBeInTheDocument();
 		store.add('Banana');
 		expect(await screen.findByText(/banana/i)).toBeInTheDocument();
 
-    expect(clearButton).toBeEnabled()
+		expect(clearButton).toBeEnabled();
 
-    await user.click(clearButton)
+		await user.click(clearButton);
 
-
-    expect(clearButton).toBeDisabled()
-    expect(screen.queryByText(/apple/i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/banana/i)).not.toBeInTheDocument()
+		expect(clearButton).toBeDisabled();
+		expect(screen.queryByText(/apple/i)).not.toBeInTheDocument();
+		expect(screen.queryByText(/banana/i)).not.toBeInTheDocument();
 	});
 });
