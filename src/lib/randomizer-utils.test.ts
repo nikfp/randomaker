@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { moveItem, secureRandomIndex } from './randomizer-utils.ts';
 import { createRandomAPI } from './randomizer-utils-test-helper.ts';
 

@@ -2,13 +2,13 @@ import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { svelteTesting } from '@testing-library/svelte/vite';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
-import { playwright } from '@vitest/browser-playwright';
+// import path from 'node:path';
+// import { fileURLToPath } from 'node:url';
+// import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
+// import { playwright } from '@vitest/browser-playwright';
 
-const dirname =
-	typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+// const dirname =
+// 	typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => ({
 	plugins: [tailwindcss(), sveltekit(), svelteTesting()],
@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => ({
 						'src/test/setup.ts'
 					]
 				}
-			},
+			}
 			// {
 			// 	extends: true,
 			// 	plugins: [
@@ -83,4 +83,3 @@ export default defineConfig(({ mode }) => ({
 		]
 	}
 }));
-

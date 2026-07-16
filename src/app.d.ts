@@ -10,6 +10,6 @@ declare global {
 	}
 }
 
-declare module 'svelte-drag-drop-touch'
+declare module 'svelte-drag-drop-touch';
 
 export {};

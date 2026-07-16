@@ -126,12 +126,11 @@
 						animate:flip={{ duration: 180 }}
 						class={[
 							'w-full py-2 lg:py-3',
-							index > 0 && 'border-t border-t-zinc-300 dark:border-t-zinc-600 ',
+							index > 0 && 'border-t border-t-zinc-300 dark:border-t-zinc-600 '
 						]}
 						role="listitem"
 					>
-						<p class={['flex w-full items-center justify-between gap-2.5', 
-						'text-base lg:text-lg']}>
+						<p class={['flex w-full items-center justify-between gap-2.5', 'text-base lg:text-lg']}>
 							<span class="grow pl-1">
 								{item.label}
 							</span>
