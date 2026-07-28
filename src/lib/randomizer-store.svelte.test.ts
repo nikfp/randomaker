@@ -114,6 +114,24 @@ describe('createListState', () => {
 		expect(store.indexByKey('missing')).toBe(-1);
 	});
 
+	it('returns the item for a given key', () => {
+		const initial = { id: 'a', label: 'One' };
+
+		const store = listState([initial, { id: 'b', label: 'Two' }]);
+
+		expect(store.getByKey('a')).toEqual(initial);
+	});
+
+	it('returns undefined for get with bad key', () => {
+		const store = listState([
+			{ id: 'a', label: 'One' },
+			{ id: 'b', label: 'Two' }
+		]);
+
+		expect(store.getByKey('bad')).toBeUndefined()
+
+	})
+
 	it('moves an item before another item by default', () => {
 		const store = listState([
 			{ id: 'a', label: 'One' },

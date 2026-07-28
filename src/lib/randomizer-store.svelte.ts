@@ -33,6 +33,10 @@ function createListState(initial: ListItem[] = [], randomApi: RandomAPI = crypto
 			return items.findIndex((item) => item.id === key);
 		},
 
+		getByKey(key: string) {
+			return items.find((el) => el.id == key);
+		},
+
 		moveByKey(fromKey: string, toKey: string, place: 'before' | 'after' = 'before') {
 			const from = items.findIndex((item) => item.id === fromKey);
 			const to = items.findIndex((item) => item.id === toKey);
