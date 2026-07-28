@@ -128,9 +128,8 @@ describe('createListState', () => {
 			{ id: 'b', label: 'Two' }
 		]);
 
-		expect(store.getByKey('bad')).toBeUndefined()
-
-	})
+		expect(store.getByKey('bad')).toBeUndefined();
+	});
 
 	it('moves an item before another item by default', () => {
 		const store = listState([

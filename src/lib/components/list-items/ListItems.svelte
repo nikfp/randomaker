@@ -8,10 +8,12 @@
 	import Trash from '$lib/components/icons/Trash.svelte';
 	import type { ListItem } from '$lib/randomizer-store.svelte';
 	import type { ListItemsProps } from './list-items.types';
+	import DeleteItemDialog from '$lib/components/delete-item-dialog/DeleteItemDialog.svelte';
 
 	let { sectionClass = '', listStore }: ListItemsProps = $props();
 
 	let listOpen = $state(true);
+	let deleteItem: ListItem | undefined = $state(undefined);
 
 	let isRemoving = $state(false);
 	let listEmpty = $derived(listStore.value.length === 0);
@@ -26,8 +28,8 @@
 		}
 	});
 
-	function handleDelete(key: string) {
-		listStore.removeByKey(key);
+	function handleDeleteClicked(key: string) {
+		deleteItem = listStore.getByKey(key);
 	}
 
 	function handleClear() {
@@ -43,6 +45,17 @@
 		dndItems = event.detail.items;
 		listStore.replaceAll(event.detail.items);
 		isDragging = false;
+	}
+
+	function confirmDeleteHook() {
+		if (deleteItem) {
+			listStore.removeByKey(deleteItem.id);
+		}
+		deleteItem = undefined;
+	}
+
+	function cancelDeleteHook() {
+		deleteItem = undefined;
 	}
 </script>
 
@@ -138,7 +151,7 @@
 								class="inline-flex items-center"
 								type="button"
 								aria-label={`Delete ${item.label}`}
-								onclick={() => handleDelete(item.id)}
+								onclick={() => handleDeleteClicked(item.id)}
 							>
 								<Trash className="text-zinc-400" />
 							</button>
@@ -148,4 +161,11 @@
 			</div>
 		</div>
 	{/if}
+
+	<DeleteItemDialog
+		open={!!deleteItem}
+		{confirmDeleteHook}
+		{cancelDeleteHook}
+		item={deleteItem ?? { id: '', label: '' }}
+	/>
 </section>
