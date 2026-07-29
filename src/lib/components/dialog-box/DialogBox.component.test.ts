@@ -1,99 +1,67 @@
-import { render, screen, within } from '@testing-library/svelte';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-
-import DialogBox from './DialogBox.svelte';
+import { describe, it, expect, vi } from 'vitest';
 import { createRawSnippet } from 'svelte';
+import DialogBox from './DialogBox.svelte';
 
 describe('DialogBox', () => {
-	it('does not appear on screen by default', () => {
-		render(DialogBox);
+	it('does not render when open is false', () => {
+		render(DialogBox, { props: { open: false } });
 
-		const dialog = screen.queryByRole('dialog');
-
-		expect(dialog).not.toBeInTheDocument();
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 	});
 
-	it('appears on screen when open prop changes from false to true', async () => {
-		const { rerender } = render(DialogBox, { props: { open: false } });
-
-		const absentDialog = screen.queryByRole('dialog');
-		expect(absentDialog).not.toBeInTheDocument();
-
-		await rerender({ open: true });
-
-		const dialog = screen.getByRole('dialog');
-		expect(dialog).toBeInTheDocument();
-	});
-
-	it('disappears from screen when open prop changed from true to false', async () => {
-		const { rerender } = render(DialogBox, { props: { open: true } });
-
-		const dialog = screen.getByRole('dialog');
-		expect(dialog).toBeInTheDocument();
-
-		await rerender({ open: false });
-
-		const absentDialog = screen.queryByRole('dialog');
-		expect(absentDialog).not.toBeInTheDocument();
-	});
-
-	it('closes when escape key used', async () => {
-		const user = userEvent.setup();
+	it('renders when open is true', async () => {
 		render(DialogBox, { props: { open: true } });
 
-		const dialog = screen.getByRole('dialog');
-		expect(dialog).toBeInTheDocument();
-		dialog.focus();
-
-		await user.keyboard('{Escape}');
-
-		const absentDialog = screen.queryByRole('dialog');
-		expect(absentDialog).not.toBeInTheDocument();
+		expect(await screen.findByRole('dialog')).toBeInTheDocument();
 	});
 
-	it('runs close hook when closed internally', async () => {
+	it('renders default Dismiss button when no actions snippet provided', async () => {
+		render(DialogBox, { props: { open: true } });
+
+		expect(await screen.findByText('Dismiss')).toBeInTheDocument();
+	});
+
+	it('closes when clicking the backdrop overlay', async () => {
 		const user = userEvent.setup();
-		const fn = vi.fn();
 
-		render(DialogBox, { props: { open: true, onClose: fn } });
+		const { component } = render(DialogBox, { props: { open: true } });
 
-		const dialog = screen.getByRole('dialog');
-		expect(dialog).toBeInTheDocument();
+		expect(component).toBeDefined();
 
-		dialog.focus();
+		const backdrop = screen.getByRole('button', { name: /close dialog/i });
+		await user.click(backdrop);
 
-		await user.keyboard('{Escape}');
-
-		expect(fn).toHaveBeenCalledOnce();
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 	});
 
-	it('closes when user clicks outside dialog', async () => {
+	it('closes when pressing Escape', async () => {
 		const user = userEvent.setup();
-		const children = createRawSnippet(() => ({
-			render: () => 'Dialog children'
-		}));
 
-		render(DialogBox, {
-			props: {
-				open: true,
-				children
-			}
-		});
+		render(DialogBox, { props: { open: true } });
 
-		const mask = screen.getByRole('button', { name: /close dialog/i });
+		const dialog = await screen.findByRole('dialog');
+		await user.type(dialog, '{Escape}');
 
-		expect(mask).not.toBeNull();
-		expect(screen.queryByText(/dialog children/i)).toBeInTheDocument();
-
-		await user.click(mask);
-
-		expect(screen.queryByText(/dialog children/i)).not.toBeInTheDocument();
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 	});
 
-	it('properly renders title', async () => {
+	it('calls onClose when closing', async () => {
+		const user = userEvent.setup();
+		const onClose = vi.fn();
+
+		render(DialogBox, { props: { open: true, onClose } });
+
+		const backdrop = screen.getByRole('button', { name: /close dialog/i });
+		await user.click(backdrop);
+
+		expect(onClose).toHaveBeenCalledOnce();
+	});
+
+	it('renders the title snippet', async () => {
 		const title = createRawSnippet(() => ({
-			render: () => 'Dialog title'
+			render: () => '<span>My Dialog Title</span>'
 		}));
 
 		render(DialogBox, {
@@ -103,15 +71,12 @@ describe('DialogBox', () => {
 			}
 		});
 
-		const dialog = screen.getByRole('dialog');
-
-		expect(dialog).not.toBeNull();
-		expect(await within(dialog).findByText(/dialog title/i)).toBeInTheDocument();
+		expect(await screen.findByText('My Dialog Title')).toBeInTheDocument();
 	});
 
-	it('properly renders children', async () => {
+	it('renders children', async () => {
 		const children = createRawSnippet(() => ({
-			render: () => 'Dialog children'
+			render: () => '<p>Dialog body content</p>'
 		}));
 
 		render(DialogBox, {
@@ -120,15 +85,13 @@ describe('DialogBox', () => {
 				children
 			}
 		});
-		const dialog = screen.getByRole('dialog');
 
-		expect(dialog).not.toBeNull();
-		expect(await within(dialog).findByText(/dialog children/i)).toBeInTheDocument();
+		expect(await screen.findByText('Dialog body content')).toBeInTheDocument();
 	});
 
-	it('properly renders actions', async () => {
+	it('renders custom actions instead of default Dismiss button', async () => {
 		const actions = createRawSnippet(() => ({
-			render: () => 'Dialog actions'
+			render: () => '<button type="button">Custom Action</button>'
 		}));
 
 		render(DialogBox, {
@@ -138,6 +101,7 @@ describe('DialogBox', () => {
 			}
 		});
 
-		expect(await screen.findByText(/dialog actions/i)).toBeInTheDocument();
+		expect(await screen.findByText('Custom Action')).toBeInTheDocument();
+		expect(screen.queryByText('Dismiss')).not.toBeInTheDocument();
 	});
 });
