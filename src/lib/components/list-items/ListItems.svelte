@@ -9,11 +9,13 @@
 	import type { ListItem } from '$lib/randomizer-store.svelte';
 	import type { ListItemsProps } from './list-items.types';
 	import DeleteItemDialog from '$lib/components/delete-item-dialog/DeleteItemDialog.svelte';
+import ClearListDialog from '$lib/components/clear-list-dialog/ClearListDialog.svelte';
 
 	let { sectionClass = '', listStore }: ListItemsProps = $props();
 
 	let listOpen = $state(true);
 	let deleteItem: ListItem | undefined = $state(undefined);
+	let clearDialogOpen = $state(false);
 
 	let isRemoving = $state(false);
 	let listEmpty = $derived(listStore.value.length === 0);
@@ -33,7 +35,16 @@
 	}
 
 	function handleClear() {
+		clearDialogOpen = true;
+	}
+
+	function confirmClearHook() {
 		listStore.clear();
+		clearDialogOpen = false;
+	}
+
+	function cancelClearHook() {
+		clearDialogOpen = false;
 	}
 
 	function handleDndConsider(event: CustomEvent<DndEvent<ListItem>>) {
@@ -167,5 +178,11 @@
 		{confirmDeleteHook}
 		{cancelDeleteHook}
 		item={deleteItem ?? { id: '', label: '' }}
+	/>
+
+	<ClearListDialog
+		open={clearDialogOpen}
+		{confirmClearHook}
+		{cancelClearHook}
 	/>
 </section>
