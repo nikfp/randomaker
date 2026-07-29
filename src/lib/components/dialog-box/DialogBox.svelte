@@ -37,18 +37,18 @@
 			aria-modal="true"
 			aria-labelledby="dialog-title"
 			tabindex="-1"
-			class="relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl ring-1 ring-black/10"
+			class="relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl ring-1 ring-black/10 dark:bg-zinc-800 dark:ring-white/10"
 			onkeydown={onKeydown}
 		>
 			{#if title}
 				<header class="mb-4">
-					<h2 id="dialog-title" class="text-lg font-semibold text-zinc-900">
+					<h2 id="dialog-title" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
 						{@render title()}
 					</h2>
 				</header>
 			{/if}
 
-			<div class="text-sm text-zinc-700">
+			<div class="text-sm text-zinc-700 dark:text-zinc-300">
 				{@render children?.()}
 			</div>
 
@@ -56,7 +56,7 @@
 				{#if actions}
 					{@render actions()}
 				{:else}
-					<button type="button" onclick={close}>Dismiss</button>
+					<button type="button" class="dark:text-zinc-300" onclick={close}>Dismiss</button>
 				{/if}
 			</footer>
 		</div>

@@ -18,7 +18,7 @@
 
 <DialogBox {open} onClose={handleClose}>
 	{#snippet title()}
-		<h2>Are you sure you want to delete this item?</h2>
+		Are you sure you want to delete this item?
 	{/snippet}
 	<div>
 		<h4>Current item value:</h4>
