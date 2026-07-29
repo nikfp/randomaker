@@ -17,11 +17,13 @@
 	}
 
 	function onKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
+		if (event.key === 'Escape' && open) {
 			close();
 		}
 	}
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 {#if open}
 	<div class="fixed inset-0 z-50 grid place-items-center p-4 sm:p-6">
@@ -38,7 +40,6 @@
 			aria-labelledby="dialog-title"
 			tabindex="-1"
 			class="relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl ring-1 ring-black/10 dark:bg-zinc-800 dark:ring-white/10"
-			onkeydown={onKeydown}
 		>
 			{#if title}
 				<header class="mb-4">
