@@ -67,8 +67,10 @@
 			'text-white dark:text-zinc-300',
 			'focus:ring-2 focus:outline-none',
 			'focus:ring-offset-2'
-		]}>Add to List</button
+		]}
 	>
+		Add to List
+	</button>
 </form>
 
 {#if errorMessages}

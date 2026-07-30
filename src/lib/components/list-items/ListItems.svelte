@@ -100,7 +100,8 @@
 					listEmpty && 'border-zinc-300 text-zinc-300 dark:border-zinc-600 dark:text-zinc-500',
 					!listEmpty && 'border-zinc-500 text-zinc-600 dark:border-zinc-400 dark:text-zinc-400'
 				]}
-				>Clear
+			>
+				Clear
 			</button>
 			<span class="text-base lg:text-lg">Manage list items</span>
 			<button
