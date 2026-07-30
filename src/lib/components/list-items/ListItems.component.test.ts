@@ -77,6 +77,9 @@ describe('ListItems', () => {
 
 		await user.click(deleteButton);
 
+		const confirmDeleteButton = screen.getByRole('button', { name: /delete it!/i });
+		await user.click(confirmDeleteButton);
+
 		expect(screen.queryByText(/apple/i)).not.toBeInTheDocument();
 	});
 
@@ -101,6 +104,9 @@ describe('ListItems', () => {
 		expect(clearButton).toBeEnabled();
 
 		await user.click(clearButton);
+
+		const confirmClearButton = screen.getByRole('button', { name: /clear all/i });
+		await user.click(confirmClearButton);
 
 		expect(clearButton).toBeDisabled();
 		expect(screen.queryByText(/apple/i)).not.toBeInTheDocument();

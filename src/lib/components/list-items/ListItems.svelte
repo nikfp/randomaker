@@ -9,7 +9,7 @@
 	import type { ListItem } from '$lib/randomizer-store.svelte';
 	import type { ListItemsProps } from './list-items.types';
 	import DeleteItemDialog from '$lib/components/delete-item-dialog/DeleteItemDialog.svelte';
-import ClearListDialog from '$lib/components/clear-list-dialog/ClearListDialog.svelte';
+	import ClearListDialog from '$lib/components/clear-list-dialog/ClearListDialog.svelte';
 
 	let { sectionClass = '', listStore }: ListItemsProps = $props();
 
@@ -180,9 +180,5 @@ import ClearListDialog from '$lib/components/clear-list-dialog/ClearListDialog.s
 		item={deleteItem ?? { id: '', label: '' }}
 	/>
 
-	<ClearListDialog
-		open={clearDialogOpen}
-		{confirmClearHook}
-		{cancelClearHook}
-	/>
+	<ClearListDialog open={clearDialogOpen} {confirmClearHook} {cancelClearHook} />
 </section>
