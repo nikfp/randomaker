@@ -13,7 +13,9 @@ describe('ClearListDialog', () => {
 			}
 		});
 
-		expect(await screen.findByText('Are you sure you want to clear all items?')).toBeInTheDocument();
+		expect(
+			await screen.findByText('Are you sure you want to clear all items?')
+		).toBeInTheDocument();
 	});
 
 	it('calls confirmClearHook when "Clear All" is clicked', async () => {
