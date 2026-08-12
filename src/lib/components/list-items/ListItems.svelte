@@ -8,10 +8,14 @@
 	import Trash from '$lib/components/icons/Trash.svelte';
 	import type { ListItem } from '$lib/randomizer-store.svelte';
 	import type { ListItemsProps } from './list-items.types';
+	import DeleteItemDialog from '$lib/components/delete-item-dialog/DeleteItemDialog.svelte';
+	import ClearListDialog from '$lib/components/clear-list-dialog/ClearListDialog.svelte';
 
 	let { sectionClass = '', listStore }: ListItemsProps = $props();
 
 	let listOpen = $state(true);
+	let deleteItem: ListItem | undefined = $state(undefined);
+	let clearDialogOpen = $state(false);
 
 	let isRemoving = $state(false);
 	let listEmpty = $derived(listStore.value.length === 0);
@@ -26,12 +30,21 @@
 		}
 	});
 
-	function handleDelete(key: string) {
-		listStore.removeByKey(key);
+	function handleDeleteClicked(key: string) {
+		deleteItem = listStore.getByKey(key);
 	}
 
 	function handleClear() {
+		clearDialogOpen = true;
+	}
+
+	function confirmClearHook() {
 		listStore.clear();
+		clearDialogOpen = false;
+	}
+
+	function cancelClearHook() {
+		clearDialogOpen = false;
 	}
 
 	function handleDndConsider(event: CustomEvent<DndEvent<ListItem>>) {
@@ -43,6 +56,17 @@
 		dndItems = event.detail.items;
 		listStore.replaceAll(event.detail.items);
 		isDragging = false;
+	}
+
+	function confirmDeleteHook() {
+		if (deleteItem) {
+			listStore.removeByKey(deleteItem.id);
+		}
+		deleteItem = undefined;
+	}
+
+	function cancelDeleteHook() {
+		deleteItem = undefined;
 	}
 </script>
 
@@ -76,7 +100,8 @@
 					listEmpty && 'border-zinc-300 text-zinc-300 dark:border-zinc-600 dark:text-zinc-500',
 					!listEmpty && 'border-zinc-500 text-zinc-600 dark:border-zinc-400 dark:text-zinc-400'
 				]}
-				>Clear
+			>
+				Clear
 			</button>
 			<span class="text-base lg:text-lg">Manage list items</span>
 			<button
@@ -138,7 +163,7 @@
 								class="inline-flex items-center"
 								type="button"
 								aria-label={`Delete ${item.label}`}
-								onclick={() => handleDelete(item.id)}
+								onclick={() => handleDeleteClicked(item.id)}
 							>
 								<Trash className="text-zinc-400" />
 							</button>
@@ -148,4 +173,13 @@
 			</div>
 		</div>
 	{/if}
+
+	<DeleteItemDialog
+		open={!!deleteItem}
+		{confirmDeleteHook}
+		{cancelDeleteHook}
+		item={deleteItem ?? { id: '', label: '' }}
+	/>
+
+	<ClearListDialog open={clearDialogOpen} {confirmClearHook} {cancelClearHook} />
 </section>

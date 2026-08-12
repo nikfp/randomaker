@@ -33,7 +33,8 @@
 		<div>
 			{#if user}
 				<span class="welcome">
-					Welcome, <b>{user.name}</b>!
+					Welcome, <b>{user.name}</b>
+					!
 				</span>
 				<Button size="small" onclick={onLogout} label="Log out" />
 			{:else}
