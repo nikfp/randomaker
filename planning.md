@@ -37,7 +37,7 @@ Following the `DeleteItemDialog` pattern, the edit component will:
 
 ### UI Decisions (resolved)
 
-1. **Edit trigger**: New `Pencil.svelte` icon (`src/lib/components/icons/Pencil.svelte`, Heroicons `pencil` outline, `className` prop pattern matching `Trash.svelte`). Edit button per item row, placed left of the delete button, `aria-label="Edit {label}"`, icon tinted `text-zinc-400` to match the trash icon.
+1. **Edit trigger**: Use the recently created `Pencil.svelte` component, which has the same class API as the trash icon component. Edit button per item row, placed left of the delete button, `aria-label="Edit {label}"`, icon tinted `text-zinc-400` to match the trash icon.
 2. **Input handling**: `EditItemDialog` keeps a local `draft` (`$state('')`) reset to `item.label` in an `$effect` keyed on `open`. Confirm calls `confirmEditHook(draft)`; Cancel/Escape/backdrop never write to the store, so the original label is preserved automatically. The input mounts fresh per open thanks to `DialogBox`'s `{#if open}`.
 3. **Validation rules**: Reuse `inputSchema` (trim, min 1, max 255) against the draft. Save button is `disabled` while the trimmed draft is empty; if the draft exceeds 255 chars, allow submit but show the inline `Input Too Long` error (ListInput style) without writing. `updateByKey(key, label)` receives the trimmed label.
 4. **Cancel/discard behavior**: Free via `DialogBox` — Escape and backdrop click route through `onClose` → `cancelEditHook`, and a Cancel button does the same. No store write on any cancel path.
@@ -46,7 +46,6 @@ Following the `DeleteItemDialog` pattern, the edit component will:
 
 ### Revised Next Steps
 
-- **Create Pencil icon** - `src/lib/components/icons/Pencil.svelte` (Heroicons pencil, matching Trash pattern)
 - **Create EditItemDialog component** - `src/lib/components/edit-item-dialog/EditItemDialog.svelte` following DeleteItemDialog pattern
 - **Update ListItems.svelte** - Add edit button (pencil icon) and integrate with new component, including focus return to trigger
 - **Add `updateByKey` to randomizer store** - Method to update item by key in `src/lib/randomizer-store.svelte.ts`
