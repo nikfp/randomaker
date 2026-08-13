@@ -16,6 +16,8 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 
 ## Step 1 — `randomExcluding(excludedIds)` on the store
 
+**Status:** done — `randomExcluding(excludedIds)` implemented at `randomizer-store.svelte.ts:43-47`; 5 new tests + 22 existing pass (`27/27`).
+
 **Tests first** in `src/lib/randomizer-store.svelte.test.ts` (reusing `createRandomAPI` index injection):
 
 1. Excludes a single listed id (deterministic: with 3 items and a forced index, never returns the excluded id)
@@ -27,6 +29,8 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 **Then:** add `randomExcluding(excludedIds: string[]): ListItem | undefined` in `randomizer-store.svelte.ts`. Filter `items` by id, call `secureRandomIndex(filtered.length, randomApi)`, return `filtered[index]`, else `undefined`. Keep `random()` unchanged (pure uniform).
 
 ## Step 2 — Mode + session pool in the store
+
+**Status:** done — `noRepeat`/`pickedIds` state at `randomizer-store.svelte.ts:7-8`; `noRepeat` + `canPick` getters at `:15-21`; `setNoRepeat` at `:23-26`; `pick()` at `:49-67`; pool reset on `clear()`/`replaceAll()` further down; 12 new tests + 87 existing pass (`99/99`).
 
 **Tests first** in `src/lib/randomizer-store.svelte.test.ts`:
 
@@ -53,17 +57,51 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 
 ## Step 3 — Options menu + toggle on the list (`ListItems`)
 
-New component `src/lib/components/list-options-menu/ListOptionsMenu.svelte` + co-located `ListOptionsMenu.component.test.ts`.
+**Status:** done — `ListOptionsMenu.svelte` (internal `open`, explicit-hook props, `menuitemcheckbox` toggle, click-catcher + Escape close, focus management) + `ListOptionsMenu.types.ts`; wired into `ListItems.svelte` header (flex `gap` group with "Clear"); `ListItemsProps` gains optional `noRepeat`/`onToggleNoRepeat` passthrough. 7 component tests + 1 `ListItems` integration test; suite `107/107`.
 
-- Renders an "Options" button (aria-label) in the `ListItems` header row, next to "Clear".
-- Clicking it opens a small menu containing a single toggle: "No repeats this session" (checked = on).
-- Props: `noRepeat: boolean`, `onToggleNoRepeat: (enabled: boolean) => void`. Use `$bindable` so `ListItems`/page can two-way bind, or explicit hooks per the dialog conventions.
-- Close menu on outside click / Escape / selecting the option; keep focus behavior consistent with the other components.
-- Test: opens on click, reflects `noRepeat` state, toggling calls the hook, closes on Escape/outside click.
+**Follow-up fix (visible toggle state):** the `menuitemcheckbox` currently conveys only `aria-checked` — no visual on/off indication.
 
-**Then:** wire into `ListItems` — add props `noRepeat` + toggle handler passthrough, render the menu in the header row.
+**Status:** done — added `icons/Check.svelte` (Heroicons solid check); toggle now renders as a flex row with a checkbox box (`h-4 w-4 rounded-sm border`, blue-filled + white checkmark when on, empty bordered box when off), stronger label when active. 2 new tests (checkmark present when on, absent when off); suite `112/112`. Plan:
+
+- Add `src/lib/components/icons/Check.svelte` (Heroicons solid check, `role="img"`, follows the `Pencil`/`Trash` icon convention with a `className` prop).
+- `ListOptionsMenu.svelte`: render the toggle as a `flex` row with a leading checkbox box (`h-4 w-4 rounded-sm border`, `aria-hidden` wrapper). When `noRepeat` is on: box `bg-blue-600 border-blue-600`, white `Check` icon inside, stronger label color. When off: empty `border-zinc-400` box, neutral label color.
+- `ListOptionsMenu.component.test.ts`: add test — when `noRepeat=true` the toggle contains the checkmark (`getByRole('img', { hidden: true })` inside the toggle); when `false` it does not. Existing `aria-checked` tests stay.
+- Verify: `pnpm test:run && pnpm check && pnpm lint`.
+
+**Design:** a self-contained dropdown (`ListOptionsMenu`) anchored to an "Options" trigger button in the `ListItems` header row, left of "Clear". Lightweight popover — **not** a `DialogBox` modal.
+
+**Files:**
+
+- `src/lib/components/list-options-menu/ListOptionsMenu.svelte`
+- `ListOptionsMenu.types.ts` — `{ noRepeat: boolean; onToggleNoRepeat: (enabled: boolean) => void }`
+- `ListOptionsMenu.component.test.ts`
+
+**Component behavior:**
+
+- `open` is **internal** `$state` (not exposed to `ListItems`/page) — self-contained open/close.
+- Props via explicit hooks (dialogs convention), not `$bindable`.
+- Trigger: text button "Options", `aria-haspopup="menu"`, `aria-expanded={open}`, `aria-label="Options"`, styled like the existing "Clear" button.
+- On open, focus the first menu item; on close (Escape / outside click / select), return focus to the trigger.
+- Menu is anchored with a `relative` wrapper; menu is `absolute right-0 z-50`. Click-catcher is a full-screen `button` with `aria-label="Close options menu"` and `tabindex="-1"` (testable via `getByRole('button', { name: /close options menu/i })`, same pattern as `DialogBox`).
+- Toggle renders as `role="menuitemcheckbox"` with `aria-checked={noRepeat}`; label "No repeats this session".
+- Clicking the toggle calls `onToggleNoRepeat(!noRepeat)` **and closes the menu** + refocuses trigger.
+- Escape via `<svelte:window onkeydown>` closes + refocuses trigger.
+
+**Tests:**
+
+1. Renders only the trigger button when closed (menu not in document)
+2. Opens on click — `aria-expanded=true`, toggle visible
+3. Reflects `noRepeat` via `aria-checked` (both states)
+4. Clicking the toggle calls `onToggleNoRepeat(!noRepeat)` and closes the menu
+5. Escape closes and refocuses the trigger
+6. Clicking the click-catcher closes
+7. Focus lands on the toggle when opened
+
+**Then:** wire into `ListItems` — add `noRepeat` + `onToggleNoRepeat` passthrough to `ListItemsProps`, render the menu in the header row inside a flex `gap` group with "Clear".
 
 ## Step 4 — Page wiring (`+page.svelte`)
+
+**Status:** done — `pickListItem` uses `listStore.pick()`; `disablePickButton` derives from `!listStore.canPick`; `ListItems` receives `noRepeat={listStore.noRepeat}` + `onToggleNoRepeat`. Page holds no pool/toggle state. Suite `107/107`.
 
 - Replace `selection = listStore.random()` with `selection = listStore.pick()`.
 - Replace `let disablePickButton = $derived(listStore.value.length === 0)` with `let disablePickButton = $derived(!listStore.canPick)` — the page no longer reaches into store internals; `canPick` is the seam a future multi-list coordinator combines (`every`/`some` across stores).
@@ -71,6 +109,8 @@ New component `src/lib/components/list-options-menu/ListOptionsMenu.svelte` + co
 - Page holds no pool/toggle state; `selection` stays in the page.
 
 ## Step 5 — Page tests in `src/routes/page.svelte.test.ts`
+
+**Status:** done — 3 new tests (no-repeat "never repeats the previous pick" using the forced second-pick assertion, reset smoke test with a 1-item list, toggle-off revert) + 2 shared helpers (`addItems`, `setNoRepeat`). Suite `110/110`.
 
 1. Default (toggle off): existing behavior tests still pass unchanged.
 2. Toggle on, 2 items (Banana, Apple): two consecutive picks are never the same — deterministic regardless of `crypto` randomness (pick 2 is forced to the remaining item). Use `findByText` to handle the 150 ms fade in `SelectionDisplay`.
