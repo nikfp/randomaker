@@ -4,9 +4,12 @@
 
 TDD, one step at a time. For each step: write the tests first, pause for review before implementing, then implement only enough code to make the new tests pass. Verify after each step with `pnpm test:run`.
 
-## Step 1 — `updateByKey(key, label)` on the store
+## Step 1 — `updateByKey(key, label)` on the store — ✅ COMPLETE
+
+Done: `updateByKey` added to `randomizer-store.svelte.ts`; 3 tests added to `randomizer-store.svelte.test.ts`.
 
 **Tests first** in `src/lib/randomizer-store.svelte.test.ts` (following existing `removeByKey` pattern):
+
 1. Updates only the matching item's label, preserving its `id` and position
 2. Leaves the list unchanged when no item matches `key`
 3. Preserves the order and contents of all other items
@@ -14,7 +17,9 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 
 **Then:** add `updateByKey(key, label)` in `randomizer-store.svelte.ts` (map over items, replace label where `id === key`).
 
-## Step 2 — `EditItemDialog` component
+## Step 2 — `EditItemDialog` component — ✅ COMPLETE
+
+Done: `EditItemDialog.svelte` + `EditItemDialog.component.test.ts` (11 tests) + `EditItemDialog.types.ts` (props type, per codebase convention). Focus/select deferred via `tick()` so it runs after the draft value flushes. During the test review the "renders nothing" test was tightened to assert the component's own input/Save button are absent rather than the generic `dialog` role.
 
 New files: `src/lib/components/edit-item-dialog/EditItemDialog.svelte` + `EditItemDialog.component.test.ts`.
 
@@ -25,6 +30,7 @@ UI: `DialogBox` with title "Edit item"; input using `ListInput` base styles; loc
 **Validation & trimming via `input-normalizer`**: the draft is validated and trimmed using `inputSchema` (same single source of truth as `ListInput`) before passing to `confirmEditHook`, so `updateByKey` always inserts the trimmed label. `inputSchema` errors drive the inline UI exactly like `ListInput`: Save is disabled while the trimmed draft is empty; if the trimmed draft exceeds 255 chars, Save stays enabled but clicking it shows the schema's "Input Too Long" inline error and does not call `confirmEditHook`.
 
 **Tests** (mock hooks with `vi.fn()`, drive with `user-event`, patterns from `DeleteItemDialog`/`ClearListDialog` tests):
+
 1. Renders nothing when `open` is false
 2. Renders input pre-filled with `item.label` when open
 3. Focuses input and selects its text on open
@@ -39,12 +45,14 @@ UI: `DialogBox` with title "Edit item"; input using `ListInput` base styles; loc
 ## Step 3 — Wire edit into `ListItems`
 
 Modify `src/lib/components/list-items/ListItems.svelte`:
+
 - Add Pencil edit button per row, left of the trash button, `aria-label="Edit {label}"`, icon `text-zinc-400`
 - Track `editItem` state (mirrors `deleteItem`); clicking Edit opens `EditItemDialog`
 - `confirmEditHook`: `listStore.updateByKey(editItem.id, label)` (label already trimmed/validated by the dialog via `inputSchema`), close dialog, return focus to the triggering Edit button (`currentTarget` reference)
 - `cancelEditHook`: close dialog, return focus to the triggering Edit button
 
 **Tests** added to `ListItems.component.test.ts` (integration with real `listState()`, mirroring the delete test):
+
 1. Renders an Edit button named "Edit {label}" for each item, before the delete button
 2. Clicking Edit opens a dialog pre-filled with the item's label
 3. Confirming an edit updates the label in the list, preserving order and `id`

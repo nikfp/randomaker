@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
+import type { EditDialogProps } from './EditItemDialog.types';
 import EditItemDialog from './EditItemDialog.svelte';
 
 describe('EditItemDialog', () => {
@@ -10,7 +11,7 @@ describe('EditItemDialog', () => {
 	const saveButton = () => screen.getByRole('button', { name: /^save$/i });
 	const cancelButton = () => screen.getByRole('button', { name: /^cancel$/i });
 
-	function renderDialog(props: Partial<Parameters<typeof EditItemDialog>[0]> = {}) {
+	function renderDialog(props: Partial<EditDialogProps> = {}) {
 		return render(EditItemDialog, {
 			props: {
 				open: true,
