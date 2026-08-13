@@ -1,68 +1,79 @@
-# Issue #29: Ability to edit list items
+# Issue #11: Re-roll without previous selections
 
 ## Strategy
 
 TDD, one step at a time. For each step: write the tests first, pause for review before implementing, then implement only enough code to make the new tests pass. Verify after each step with `pnpm test:run`.
 
-## Step 1 — `updateByKey(key, label)` on the store — ✅ COMPLETE
+## Behavior spec
 
-Done: `updateByKey` added to `randomizer-store.svelte.ts`; 3 tests added to `randomizer-store.svelte.test.ts`.
+- The no-repeat behavior is **toggleable**, defaulting to **off** (standard fully-random picks of the entire list, today's behavior).
+- The toggle lives in an options menu on the list itself.
+- **On:** each pick remembers the picked item's `id` in a session pool. Picks are drawn uniformly from the items **not yet picked** this session (draw without replacement). When every item has been picked, the pool resets and the next pick draws from all items again.
+- **Off:** reverts to fully random picks of the entire list (no pool).
+- Toggling the mode on/off resets the session pool.
 
-**Tests first** in `src/lib/randomizer-store.svelte.test.ts` (following existing `removeByKey` pattern):
+**State location decision:** the mode flag and the session pool live in the **store** (each `listState()` instance is self-contained — mode, pool, and pick logic travel together). This keeps the page thin and preps the future multi-list coordinated pick trigger, where each list store answers a single `pick()` and coordinates are done by calling it on each store. The page does **not** own per-list pool/toggle state.
 
-1. Updates only the matching item's label, preserving its `id` and position
-2. Leaves the list unchanged when no item matches `key`
-3. Preserves the order and contents of all other items
-4. Store does not trim — trimming belongs to the dialog (`inputSchema`), mirroring how `add` works
+## Step 1 — `randomExcluding(excludedIds)` on the store
 
-**Then:** add `updateByKey(key, label)` in `randomizer-store.svelte.ts` (map over items, replace label where `id === key`).
+**Tests first** in `src/lib/randomizer-store.svelte.test.ts` (reusing `createRandomAPI` index injection):
+1. Excludes a single listed id (deterministic: with 3 items and a forced index, never returns the excluded id)
+2. Excludes multiple ids
+3. Returns `undefined` when every item is excluded
+4. Returns `undefined` when the list is empty
+5. Never returns any excluded id across repeated calls
 
-## Step 2 — `EditItemDialog` component — ✅ COMPLETE
+**Then:** add `randomExcluding(excludedIds: string[]): ListItem | undefined` in `randomizer-store.svelte.ts`. Filter `items` by id, call `secureRandomIndex(filtered.length, randomApi)`, return `filtered[index]`, else `undefined`. Keep `random()` unchanged (pure uniform).
 
-Done: `EditItemDialog.svelte` + `EditItemDialog.component.test.ts` (11 tests) + `EditItemDialog.types.ts` (props type, per codebase convention). Focus/select deferred via `tick()` so it runs after the draft value flushes. During the test review the "renders nothing" test was tightened to assert the component's own input/Save button are absent rather than the generic `dialog` role.
+## Step 2 — Mode + session pool in the store
 
-New files: `src/lib/components/edit-item-dialog/EditItemDialog.svelte` + `EditItemDialog.component.test.ts`.
+**Tests first** in `src/lib/randomizer-store.svelte.test.ts`:
+1. `noRepeat` defaults to `false`
+2. `setNoRepeat(true)` flips it on; `setNoRepeat(false)` flips it off
+3. `setNoRepeat` resets the pool (pick A, toggle off→on, next pick may be A again)
+4. `pick()` with mode off returns a uniform random item (same as `random()`)
+5. `pick()` with mode on never returns the immediately-previous pick (2-item list: second pick is forced to the other item)
+6. `pick()` with mode on and exhausted pool resets and returns an item (1-item list: every pick exhausts the pool; the reset path still returns the item)
+7. `clear()` and `replaceAll()` reset the pool; add/remove/update leave stale ids harmlessly (they never match present items)
 
-Props: `open: boolean`, `item: ListItem`, `confirmEditHook: (newLabel: string) => void`, `cancelEditHook: () => void`.
+**Then:** in `randomizer-store.svelte.ts`:
+- `let noRepeat = $state(false)` and `let pickedIds: string[] = $state([])`
+- `get noRepeat()` accessor
+- `setNoRepeat(enabled: boolean)`: set flag, reset `pickedIds = []`
+- `pick(): ListItem | undefined`:
+  - mode **off**: `return random()`
+  - mode **on**: `randomExcluding(pickedIds)`; if found, append its id to `pickedIds` and return it; if `undefined` (pool exhausted), reset `pickedIds = []`, pick fresh via `random()`, seed the pool with that pick's id, return it
+- `clear()` / `replaceAll()` also reset `pickedIds`
 
-UI: `DialogBox` with title "Edit item"; input using `ListInput` base styles; local `draft = $state('')` reset to `item.label` in an `$effect` keyed on `open`, input focused + text `select()`-ed on open; Save = blue primary → `confirmEditHook(validated, trimmed draft)`; Cancel = zinc secondary → `cancelEditHook`.
+## Step 3 — Options menu + toggle on the list (`ListItems`)
 
-**Validation & trimming via `input-normalizer`**: the draft is validated and trimmed using `inputSchema` (same single source of truth as `ListInput`) before passing to `confirmEditHook`, so `updateByKey` always inserts the trimmed label. `inputSchema` errors drive the inline UI exactly like `ListInput`: Save is disabled while the trimmed draft is empty; if the trimmed draft exceeds 255 chars, Save stays enabled but clicking it shows the schema's "Input Too Long" inline error and does not call `confirmEditHook`.
+New component `src/lib/components/list-options-menu/ListOptionsMenu.svelte` + co-located `ListOptionsMenu.component.test.ts`.
 
-**Tests** (mock hooks with `vi.fn()`, drive with `user-event`, patterns from `DeleteItemDialog`/`ClearListDialog` tests):
+- Renders an "Options" button (aria-label) in the `ListItems` header row, next to "Clear".
+- Clicking it opens a small menu containing a single toggle: "No repeats this session" (checked = on).
+- Props: `noRepeat: boolean`, `onToggleNoRepeat: (enabled: boolean) => void`. Use `$bindable` so `ListItems`/page can two-way bind, or explicit hooks per the dialog conventions.
+- Close menu on outside click / Escape / selecting the option; keep focus behavior consistent with the other components.
+- Test: opens on click, reflects `noRepeat` state, toggling calls the hook, closes on Escape/outside click.
 
-1. Renders nothing when `open` is false
-2. Renders input pre-filled with `item.label` when open
-3. Focuses input and selects its text on open
-4. Save disabled for empty/whitespace draft
-5. Typing 256 chars then clicking Save shows the inline "Input Too Long" error and does not call `confirmEditHook`
-6. Save enabled for a valid label
-7. Clicking Save calls `confirmEditHook` with the trimmed label
-8. Clicking Cancel calls `cancelEditHook`
-9. Clicking the backdrop calls `cancelEditHook`
-10. Pressing Escape calls `cancelEditHook`
+**Then:** wire into `ListItems` — add props `noRepeat` + toggle handler passthrough, render the menu in the header row.
 
-## Step 3 — Wire edit into `ListItems` — ✅ COMPLETE
+## Step 4 — Page wiring (`+page.svelte`)
 
-Done: Pencil edit button per row (`aria-label="Edit {label}"`, left of trash, `text-zinc-400`), `editItem` + `editTrigger` state, `EditItemDialog` wired via `confirmEditHook`/`cancelEditHook` (both close the dialog and return focus to the triggering Edit button, captured via `event.currentTarget`). `Pencil.svelte` base class changed from `size-6` to `h-4 w-4` to match `Trash`. 5 integration tests added to `ListItems.component.test.ts` (edit button placement, dialog pre-fill, confirm preserves order/id, cancel leaves unchanged, focus return). All 81 tests pass; `pnpm check` and `pnpm lint` clean.
+- Replace `selection = listStore.random()` with `selection = listStore.pick()`.
+- Pass `listStore.noRepeat` and `(enabled) => listStore.setNoRepeat(enabled)` into `ListItems`.
+- Page holds no pool/toggle state; `selection` stays in the page.
 
-## Original plan for Step 3
+## Step 5 — Page tests in `src/routes/page.svelte.test.ts`
 
-Modify `src/lib/components/list-items/ListItems.svelte`:
+1. Default (toggle off): existing behavior tests still pass unchanged.
+2. Toggle on, 2 items (Banana, Apple): two consecutive picks are never the same — deterministic regardless of `crypto` randomness (pick 2 is forced to the remaining item). Use `findByText` to handle the 150 ms fade in `SelectionDisplay`.
+3. Reset smoke test: with the toggle on, pick repeatedly until the pool is exhausted; picking still works and shows an item (a 1-item list forces the reset path since every pick exhausts the pool).
+4. Toggling off after on reverts to working standard picks.
 
-- Add Pencil edit button per row, left of the trash button, `aria-label="Edit {label}"`, icon `text-zinc-400`
-- Track `editItem` state (mirrors `deleteItem`); clicking Edit opens `EditItemDialog`
-- `confirmEditHook`: `listStore.updateByKey(editItem.id, label)` (label already trimmed/validated by the dialog via `inputSchema`), close dialog, return focus to the triggering Edit button (`currentTarget` reference)
-- `cancelEditHook`: close dialog, return focus to the triggering Edit button
-
-**Tests** added to `ListItems.component.test.ts` (integration with real `listState()`, mirroring the delete test):
-
-1. Renders an Edit button named "Edit {label}" for each item, before the delete button
-2. Clicking Edit opens a dialog pre-filled with the item's label
-3. Confirming an edit updates the label in the list, preserving order and `id`
-4. Cancelling leaves the label unchanged
-5. Focus returns to the Edit button after the dialog closes
-
-## Step 4 — Verify
+## Step 6 — Verify
 
 `pnpm test:run && pnpm check && pnpm lint`
+
+No changes needed in `randomizer-utils.ts` (`secureRandomIndex` already accepts a length).
+
+**Future note (out of scope):** with multi-list, `selection` could move into each store so `pick()` fully self-contains each list's outcome for the coordinated trigger.
