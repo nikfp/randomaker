@@ -17,6 +17,7 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 ## Step 1 — `randomExcluding(excludedIds)` on the store
 
 **Tests first** in `src/lib/randomizer-store.svelte.test.ts` (reusing `createRandomAPI` index injection):
+
 1. Excludes a single listed id (deterministic: with 3 items and a forced index, never returns the excluded id)
 2. Excludes multiple ids
 3. Returns `undefined` when every item is excluded
@@ -28,6 +29,7 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 ## Step 2 — Mode + session pool in the store
 
 **Tests first** in `src/lib/randomizer-store.svelte.test.ts`:
+
 1. `noRepeat` defaults to `false`
 2. `setNoRepeat(true)` flips it on; `setNoRepeat(false)` flips it off
 3. `setNoRepeat` resets the pool (pick A, toggle off→on, next pick may be A again)
@@ -39,6 +41,7 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 9. **Adding a new item in noRepeat mode does not reset the pool** — previously picked ids stay excluded, and the new item is immediately eligible (not in the pool, so the next pick may be it)
 
 **Then:** in `randomizer-store.svelte.ts`:
+
 - `let noRepeat = $state(false)` and `let pickedIds: string[] = $state([])`
 - `get noRepeat()` accessor
 - `get canPick(): boolean` — `items.length > 0` (reactive via `$state`, no `$derived` needed; read by the page for the pick button and later combined across lists for the coordinated trigger)
