@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import ListItems from './ListItems.svelte';
 import type { ListItemsProps } from './list-items.types.ts';
 import { listState } from '$lib/randomizer-store.svelte';
@@ -227,5 +227,36 @@ describe('ListItems', () => {
 		expect(clearButton).toBeDisabled();
 		expect(screen.queryByText(/apple/i)).not.toBeInTheDocument();
 		expect(screen.queryByText(/banana/i)).not.toBeInTheDocument();
+	});
+
+	it('wires the options menu no-repeat toggle to the passthrough hook', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const onToggleNoRepeat = vi.fn();
+		const props: ListItemsProps = {
+			listStore: store,
+			noRepeat: false,
+			onToggleNoRepeat
+		};
+
+		render(ListItems, { props });
+
+		const optionsButton = screen.getByRole('button', { name: /^options$/i });
+		expect(optionsButton).toBeInTheDocument();
+
+		await user.click(optionsButton);
+
+		const toggle = await screen.findByRole('menuitemcheckbox', {
+			name: /no repeats this session/i
+		});
+		expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+		await user.click(toggle);
+
+		expect(onToggleNoRepeat).toHaveBeenCalledOnce();
+		expect(onToggleNoRepeat).toHaveBeenCalledWith(true);
+		await waitFor(() => {
+			expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+		});
 	});
 });

@@ -12,8 +12,14 @@
 	import DeleteItemDialog from '$lib/components/delete-item-dialog/DeleteItemDialog.svelte';
 	import EditItemDialog from '$lib/components/edit-item-dialog/EditItemDialog.svelte';
 	import ClearListDialog from '$lib/components/clear-list-dialog/ClearListDialog.svelte';
+	import ListOptionsMenu from '$lib/components/list-options-menu/ListOptionsMenu.svelte';
 
-	let { sectionClass = '', listStore }: ListItemsProps = $props();
+	let {
+		sectionClass = '',
+		listStore,
+		noRepeat = false,
+		onToggleNoRepeat = () => {}
+	}: ListItemsProps = $props();
 
 	let listOpen = $state(true);
 	let deleteItem: ListItem | undefined = $state(undefined);
@@ -111,20 +117,24 @@
 				listOpen && 'border-b border-b-zinc-300 dark:border-b-zinc-600'
 			]}
 		>
-			<button
-				type="button"
-				onclick={handleClear}
-				aria-label="Clear Items"
-				disabled={listEmpty}
-				class={[
-					'text-xs lg:text-sm',
-					'rounded-sm border px-1',
-					listEmpty && 'border-zinc-300 text-zinc-300 dark:border-zinc-600 dark:text-zinc-500',
-					!listEmpty && 'border-zinc-500 text-zinc-600 dark:border-zinc-400 dark:text-zinc-400'
-				]}
-			>
-				Clear
-			</button>
+			<div class="flex items-center gap-2">
+				<ListOptionsMenu {noRepeat} {onToggleNoRepeat} />
+
+				<button
+					type="button"
+					onclick={handleClear}
+					aria-label="Clear Items"
+					disabled={listEmpty}
+					class={[
+						'text-xs lg:text-sm',
+						'rounded-sm border px-1',
+						listEmpty && 'border-zinc-300 text-zinc-300 dark:border-zinc-600 dark:text-zinc-500',
+						!listEmpty && 'border-zinc-500 text-zinc-600 dark:border-zinc-400 dark:text-zinc-400'
+					]}
+				>
+					Clear
+				</button>
+			</div>
 			<span class="text-base lg:text-lg">Manage list items</span>
 			<button
 				aria-label={listOpen ? 'Collapse List' : 'Expand List'}

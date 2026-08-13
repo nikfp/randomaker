@@ -8,10 +8,10 @@
 
 	let listStore = listState();
 
-	let disablePickButton = $derived(listStore.value.length === 0);
+	let disablePickButton = $derived(!listStore.canPick);
 
 	function pickListItem() {
-		selection = listStore.random();
+		selection = listStore.pick();
 	}
 </script>
 
@@ -23,7 +23,12 @@
 
 	<ListInput formClass="mt-4 lg:mt-6" {listStore} />
 
-	<ListItems {listStore} sectionClass="mt-4 lg:mt-6" />
+	<ListItems
+		{listStore}
+		noRepeat={listStore.noRepeat}
+		onToggleNoRepeat={(enabled) => listStore.setNoRepeat(enabled)}
+		sectionClass="mt-4 lg:mt-6"
+	/>
 
 	<button
 		class={[

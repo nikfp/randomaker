@@ -4,10 +4,25 @@ export type ListItem = { label: string; id: string };
 
 function createListState(initial: ListItem[] = [], randomApi: RandomAPI = crypto) {
 	let items = $state([...initial]);
+	let noRepeat = $state(false);
+	let pickedIds: string[] = $state([]);
 
 	return {
 		get value() {
 			return items;
+		},
+
+		get noRepeat() {
+			return noRepeat;
+		},
+
+		get canPick() {
+			return items.length > 0;
+		},
+
+		setNoRepeat(enabled: boolean) {
+			noRepeat = enabled;
+			pickedIds = [];
 		},
 
 		add(itemLabel: string) {
@@ -23,6 +38,32 @@ function createListState(initial: ListItem[] = [], randomApi: RandomAPI = crypto
 		random(): ListItem | undefined {
 			const index = secureRandomIndex(items.length, randomApi);
 			return index === undefined ? undefined : items[index];
+		},
+
+		randomExcluding(excludedIds: string[]): ListItem | undefined {
+			const candidates = items.filter((item) => !excludedIds.includes(item.id));
+			const index = secureRandomIndex(candidates.length, randomApi);
+			return index === undefined ? undefined : candidates[index];
+		},
+
+		pick(): ListItem | undefined {
+			if (!noRepeat) return this.random();
+
+			const picked = this.randomExcluding(pickedIds);
+
+			if (picked) {
+				pickedIds = [...pickedIds, picked.id];
+				return picked;
+			}
+
+			pickedIds = [];
+			const fresh = this.random();
+
+			if (fresh) {
+				pickedIds = [fresh.id];
+			}
+
+			return fresh;
 		},
 
 		removeByKey(key: string) {
@@ -58,10 +99,12 @@ function createListState(initial: ListItem[] = [], randomApi: RandomAPI = crypto
 
 		replaceAll(nextItems: ListItem[]) {
 			items = [...nextItems];
+			pickedIds = [];
 		},
 
 		clear() {
 			items = [];
+			pickedIds = [];
 		}
 	};
 }
