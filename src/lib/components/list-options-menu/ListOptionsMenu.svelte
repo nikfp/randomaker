@@ -3,7 +3,12 @@
 	import Check from '$lib/components/icons/Check.svelte';
 	import type { ListOptionsMenuProps } from './ListOptionsMenu.types';
 
-	let { noRepeat, onToggleNoRepeat }: ListOptionsMenuProps = $props();
+	let {
+		noRepeat,
+		onToggleNoRepeat,
+		onClear = () => {},
+		onOpenPresets = () => {}
+	}: ListOptionsMenuProps = $props();
 
 	const TOGGLE_CLOSE_DELAY_MS = 600;
 
@@ -35,6 +40,16 @@
 			clearTimeout(closeTimer);
 		}
 		closeTimer = setTimeout(closeMenu, TOGGLE_CLOSE_DELAY_MS);
+	}
+
+	function handleClear() {
+		onClear();
+		closeMenu();
+	}
+
+	function handleOpenPresets() {
+		onOpenPresets();
+		closeMenu();
 	}
 
 	function onKeydown(event: KeyboardEvent) {
@@ -123,6 +138,31 @@
 					{/if}
 				</span>
 				No repeats this session
+			</button>
+
+			<button
+				type="button"
+				role="menuitem"
+				onclick={handleClear}
+				class={[
+					'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
+					'border-t border-t-zinc-200 focus:bg-zinc-100 focus:outline-none',
+					'dark:border-t-zinc-600 dark:focus:bg-zinc-600'
+				]}
+			>
+				Clear list
+			</button>
+
+			<button
+				type="button"
+				role="menuitem"
+				onclick={handleOpenPresets}
+				class={[
+					'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
+					'focus:bg-zinc-100 focus:outline-none dark:focus:bg-zinc-600'
+				]}
+			>
+				Presets
 			</button>
 		</div>
 	{/if}

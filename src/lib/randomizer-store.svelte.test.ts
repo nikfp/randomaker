@@ -517,4 +517,64 @@ describe('createListState', () => {
 
 		expect(store.value).toEqual([]);
 	});
+
+	it('loadPreset into an empty store sets value length to labels length', () => {
+		const { randomizer } = createRandomAPI([], ['id-1', 'id-2']);
+		const store = listState([], randomizer);
+
+		store.loadPreset(['One', 'Two']);
+
+		expect(store.value.length).toBe(2);
+	});
+
+	it('loadPreset replaces existing items entirely', () => {
+		const store = listState([
+			{ id: 'a', label: 'Old one' },
+			{ id: 'b', label: 'Old two' }
+		]);
+
+		store.loadPreset(['New one', 'New two']);
+
+		expect(store.value.map((item) => item.label)).toEqual(['New one', 'New two']);
+	});
+
+	it('loadPreset resets the no-repeat pool', () => {
+		const { randomizer } = createRandomAPI([0, 0, 0], ['id-1', 'id-2']);
+		const store = listState(
+			[
+				{ id: 'a', label: 'One' },
+				{ id: 'b', label: 'Two' }
+			],
+			randomizer
+		);
+		store.setNoRepeat(true);
+
+		expect(store.pick()).toEqual({ id: 'a', label: 'One' });
+		expect(store.pick()).toEqual({ id: 'b', label: 'Two' });
+
+		store.loadPreset(['One', 'Two']);
+
+		expect(store.pick()).toEqual({ id: 'id-1', label: 'One' });
+	});
+
+	it('loadPreset assigns a fresh unique id to every loaded item', () => {
+		const { randomizer } = createRandomAPI([], ['id-x', 'id-y']);
+		const store = listState([], randomizer);
+
+		store.loadPreset(['Alpha', 'Beta']);
+
+		expect(store.value).toEqual([
+			{ id: 'id-x', label: 'Alpha' },
+			{ id: 'id-y', label: 'Beta' }
+		]);
+	});
+
+	it('loadPreset turns no-repeat off', () => {
+		const store = listState([{ id: 'a', label: 'One' }]);
+		store.setNoRepeat(true);
+
+		store.loadPreset(['Heads', 'Tails']);
+
+		expect(store.noRepeat).toBe(false);
+	});
 });
