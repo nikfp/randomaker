@@ -31,19 +31,22 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 1. `noRepeat` defaults to `false`
 2. `setNoRepeat(true)` flips it on; `setNoRepeat(false)` flips it off
 3. `setNoRepeat` resets the pool (pick A, toggle off→on, next pick may be A again)
-4. `pick()` with mode off returns a uniform random item (same as `random()`)
-5. `pick()` with mode on never returns the immediately-previous pick (2-item list: second pick is forced to the other item)
-6. `pick()` with mode on and exhausted pool resets and returns an item (1-item list: every pick exhausts the pool; the reset path still returns the item)
-7. `clear()` and `replaceAll()` reset the pool; add/remove/update leave stale ids harmlessly (they never match present items)
+4. `canPick` is `false` when the list is empty and `true` once it has items
+5. `pick()` with mode off returns a uniform random item (same as `random()`)
+6. `pick()` with mode on never returns the immediately-previous pick (2-item list: second pick is forced to the other item)
+7. `pick()` with mode on and exhausted pool resets and returns an item (1-item list: every pick exhausts the pool; the reset path still returns the item)
+8. `clear()` and `replaceAll()` reset the pool; remove/update leave stale ids harmlessly (they never match present items)
+9. **Adding a new item in noRepeat mode does not reset the pool** — previously picked ids stay excluded, and the new item is immediately eligible (not in the pool, so the next pick may be it)
 
 **Then:** in `randomizer-store.svelte.ts`:
 - `let noRepeat = $state(false)` and `let pickedIds: string[] = $state([])`
 - `get noRepeat()` accessor
+- `get canPick(): boolean` — `items.length > 0` (reactive via `$state`, no `$derived` needed; read by the page for the pick button and later combined across lists for the coordinated trigger)
 - `setNoRepeat(enabled: boolean)`: set flag, reset `pickedIds = []`
 - `pick(): ListItem | undefined`:
   - mode **off**: `return random()`
   - mode **on**: `randomExcluding(pickedIds)`; if found, append its id to `pickedIds` and return it; if `undefined` (pool exhausted), reset `pickedIds = []`, pick fresh via `random()`, seed the pool with that pick's id, return it
-- `clear()` / `replaceAll()` also reset `pickedIds`
+- `clear()` / `replaceAll()` reset `pickedIds`; `add()` does **not** touch the pool (new items are immediately pickable in noRepeat mode, previously picked ids remain excluded)
 
 ## Step 3 — Options menu + toggle on the list (`ListItems`)
 
@@ -60,6 +63,7 @@ New component `src/lib/components/list-options-menu/ListOptionsMenu.svelte` + co
 ## Step 4 — Page wiring (`+page.svelte`)
 
 - Replace `selection = listStore.random()` with `selection = listStore.pick()`.
+- Replace `let disablePickButton = $derived(listStore.value.length === 0)` with `let disablePickButton = $derived(!listStore.canPick)` — the page no longer reaches into store internals; `canPick` is the seam a future multi-list coordinator combines (`every`/`some` across stores).
 - Pass `listStore.noRepeat` and `(enabled) => listStore.setNoRepeat(enabled)` into `ListItems`.
 - Page holds no pool/toggle state; `selection` stays in the page.
 
