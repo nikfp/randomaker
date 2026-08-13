@@ -29,6 +29,10 @@ function createListState(initial: ListItem[] = [], randomApi: RandomAPI = crypto
 			items = items.filter((item) => item.id !== key);
 		},
 
+		updateByKey(key: string, label: string) {
+			items = items.map((item) => (item.id === key ? { ...item, label } : item));
+		},
+
 		indexByKey(key: string) {
 			return items.findIndex((item) => item.id === key);
 		},

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import ListItems from './ListItems.svelte';
@@ -81,6 +81,122 @@ describe('ListItems', () => {
 		await user.click(confirmDeleteButton);
 
 		expect(screen.queryByText(/apple/i)).not.toBeInTheDocument();
+	});
+
+	it('renders an Edit button for each item, before the delete button', async () => {
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		store.add('Apple');
+		store.add('Banana');
+
+		const editApple = await screen.findByRole('button', { name: /edit apple/i });
+		const deleteApple = screen.getByRole('button', { name: /delete apple/i });
+		const editBanana = screen.getByRole('button', { name: /edit banana/i });
+		const deleteBanana = screen.getByRole('button', { name: /delete banana/i });
+
+		expect(
+			editApple.compareDocumentPosition(deleteApple) & Node.DOCUMENT_POSITION_FOLLOWING
+		).toBeTruthy();
+		expect(
+			editBanana.compareDocumentPosition(deleteBanana) & Node.DOCUMENT_POSITION_FOLLOWING
+		).toBeTruthy();
+	});
+
+	it('opens the edit dialog pre-filled with the item label when Edit is clicked', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		store.add('Apple');
+		await screen.findByRole('button', { name: /edit apple/i });
+
+		await user.click(screen.getByRole('button', { name: /edit apple/i }));
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(screen.getByRole('textbox', { name: 'Edit item' })).toHaveValue('Apple');
+	});
+
+	it('confirming an edit updates the label, preserving order and id', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		store.add('Apple');
+		store.add('Banana');
+		await screen.findByRole('button', { name: /edit apple/i });
+
+		const idsBefore = store.value.map((item) => item.id);
+
+		await user.click(screen.getByRole('button', { name: /edit apple/i }));
+		const input = screen.getByRole('textbox', { name: 'Edit item' });
+		await user.clear(input);
+		await user.type(input, 'Apricot');
+		await user.click(screen.getByRole('button', { name: /save/i }));
+
+		expect(screen.getByText(/apricot/i)).toBeInTheDocument();
+		expect(screen.queryByText(/apple/i)).not.toBeInTheDocument();
+		expect(store.value.map((item) => item.id)).toEqual(idsBefore);
+		expect(store.value.map((item) => item.label)).toEqual(['Apricot', 'Banana']);
+	});
+
+	it('cancelling an edit leaves the label unchanged', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		store.add('Apple');
+		await screen.findByRole('button', { name: /edit apple/i });
+
+		await user.click(screen.getByRole('button', { name: /edit apple/i }));
+		const input = screen.getByRole('textbox', { name: 'Edit item' });
+		await user.clear(input);
+		await user.type(input, 'Apricot');
+		await user.click(screen.getByRole('button', { name: /cancel/i }));
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		expect(store.value[0].label).toBe('Apple');
+		expect(screen.getByText(/apple/i)).toBeInTheDocument();
+	});
+
+	it('returns focus to the Edit button after the dialog closes', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		store.add('Apple');
+		await screen.findByRole('button', { name: /edit apple/i });
+
+		const editButton = screen.getByRole('button', { name: /edit apple/i });
+		await user.click(editButton);
+		const input = screen.getByRole('textbox', { name: 'Edit item' });
+		await user.clear(input);
+		await user.type(input, 'Apricot');
+		await user.click(screen.getByRole('button', { name: /save/i }));
+
+		await waitFor(() => {
+			expect(editButton).toHaveFocus();
+		});
 	});
 
 	it('clear button clears all items from the list', async () => {
