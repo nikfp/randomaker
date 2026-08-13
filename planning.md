@@ -20,14 +20,16 @@ New files: `src/lib/components/edit-item-dialog/EditItemDialog.svelte` + `EditIt
 
 Props: `open: boolean`, `item: ListItem`, `confirmEditHook: (newLabel: string) => void`, `cancelEditHook: () => void`.
 
-UI: `DialogBox` with title "Edit item"; input using `ListInput` base styles; local `draft = $state('')` reset to `item.label` in an `$effect` keyed on `open`, input focused + text `select()`-ed on open; Save = blue primary → `confirmEditHook(draft.trim())`; Cancel = zinc secondary → `cancelEditHook`. Validation: Save disabled when trimmed draft is empty **or** > 255 chars (no inline error state).
+UI: `DialogBox` with title "Edit item"; input using `ListInput` base styles; local `draft = $state('')` reset to `item.label` in an `$effect` keyed on `open`, input focused + text `select()`-ed on open; Save = blue primary → `confirmEditHook(validated, trimmed draft)`; Cancel = zinc secondary → `cancelEditHook`.
+
+**Validation & trimming via `input-normalizer`**: the draft is validated and trimmed using `inputSchema` (same single source of truth as `ListInput`) before passing to `confirmEditHook`, so `updateByKey` always inserts the trimmed label. `inputSchema` errors drive the inline UI exactly like `ListInput`: Save is disabled while the trimmed draft is empty; if the trimmed draft exceeds 255 chars, Save stays enabled but clicking it shows the schema's "Input Too Long" inline error and does not call `confirmEditHook`.
 
 **Tests** (mock hooks with `vi.fn()`, drive with `user-event`, patterns from `DeleteItemDialog`/`ClearListDialog` tests):
 1. Renders nothing when `open` is false
 2. Renders input pre-filled with `item.label` when open
 3. Focuses input and selects its text on open
 4. Save disabled for empty/whitespace draft
-5. Save disabled at 256 chars
+5. Typing 256 chars then clicking Save shows the inline "Input Too Long" error and does not call `confirmEditHook`
 6. Save enabled for a valid label
 7. Clicking Save calls `confirmEditHook` with the trimmed label
 8. Clicking Cancel calls `cancelEditHook`
@@ -39,7 +41,7 @@ UI: `DialogBox` with title "Edit item"; input using `ListInput` base styles; loc
 Modify `src/lib/components/list-items/ListItems.svelte`:
 - Add Pencil edit button per row, left of the trash button, `aria-label="Edit {label}"`, icon `text-zinc-400`
 - Track `editItem` state (mirrors `deleteItem`); clicking Edit opens `EditItemDialog`
-- `confirmEditHook`: `listStore.updateByKey(editItem.id, label)`, close dialog, return focus to the triggering Edit button (`currentTarget` reference)
+- `confirmEditHook`: `listStore.updateByKey(editItem.id, label)` (label already trimmed/validated by the dialog via `inputSchema`), close dialog, return focus to the triggering Edit button (`currentTarget` reference)
 - `cancelEditHook`: close dialog, return focus to the triggering Edit button
 
 **Tests** added to `ListItems.component.test.ts` (integration with real `listState()`, mirroring the delete test):

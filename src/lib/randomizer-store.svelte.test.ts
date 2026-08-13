@@ -131,6 +131,42 @@ describe('createListState', () => {
 		expect(store.getByKey('bad')).toBeUndefined();
 	});
 
+	it('updates the label for a matching key, preserving id and position', () => {
+		const store = listState([
+			{ id: 'a', label: 'One' },
+			{ id: 'b', label: 'Two' },
+			{ id: 'c', label: 'Three' }
+		]);
+
+		store.updateByKey('b', 'Twenty');
+
+		expect(store.value).toEqual([
+			{ id: 'a', label: 'One' },
+			{ id: 'b', label: 'Twenty' },
+			{ id: 'c', label: 'Three' }
+		]);
+	});
+
+	it('does nothing when updateByKey does not match', () => {
+		const initial = [
+			{ id: 'a', label: 'One' },
+			{ id: 'b', label: 'Two' }
+		];
+		const store = listState(initial);
+
+		store.updateByKey('missing', 'Changed');
+
+		expect(store.value).toEqual(initial);
+	});
+
+	it('does not trim the label passed to updateByKey', () => {
+		const store = listState([{ id: 'a', label: 'One' }]);
+
+		store.updateByKey('a', '  Spaced  ');
+
+		expect(store.value).toEqual([{ id: 'a', label: '  Spaced  ' }]);
+	});
+
 	it('moves an item before another item by default', () => {
 		const store = listState([
 			{ id: 'a', label: 'One' },
