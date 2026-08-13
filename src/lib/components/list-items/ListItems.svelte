@@ -13,6 +13,9 @@
 	import EditItemDialog from '$lib/components/edit-item-dialog/EditItemDialog.svelte';
 	import ClearListDialog from '$lib/components/clear-list-dialog/ClearListDialog.svelte';
 	import ListOptionsMenu from '$lib/components/list-options-menu/ListOptionsMenu.svelte';
+	import PresetPickerDialog from '$lib/components/preset-picker-dialog/PresetPickerDialog.svelte';
+	import DialogBox from '$lib/components/dialog-box/DialogBox.svelte';
+	import type { Preset } from '$lib/presets';
 
 	let {
 		sectionClass = '',
@@ -26,6 +29,8 @@
 	let editItem: ListItem | undefined = $state(undefined);
 	let editTrigger: HTMLButtonElement | undefined = $state(undefined);
 	let clearDialogOpen = $state(false);
+	let presetPickerOpen = $state(false);
+	let pendingPreset: Preset | undefined = $state(undefined);
 
 	let isRemoving = $state(false);
 	let listEmpty = $derived(listStore.value.length === 0);
@@ -60,6 +65,38 @@
 
 	function cancelClearHook() {
 		clearDialogOpen = false;
+	}
+
+	function openPresetPicker() {
+		presetPickerOpen = true;
+	}
+
+	function closePresetPicker() {
+		presetPickerOpen = false;
+	}
+
+	function applyPreset(preset: Preset) {
+		listStore.loadPreset(preset.labels);
+	}
+
+	function handlePresetSelected(preset: Preset) {
+		presetPickerOpen = false;
+		if (listEmpty) {
+			applyPreset(preset);
+		} else {
+			pendingPreset = preset;
+		}
+	}
+
+	function confirmReplaceHook() {
+		if (pendingPreset) {
+			applyPreset(pendingPreset);
+		}
+		pendingPreset = undefined;
+	}
+
+	function cancelReplaceHook() {
+		pendingPreset = undefined;
 	}
 
 	function handleDndConsider(event: CustomEvent<DndEvent<ListItem>>) {
@@ -118,22 +155,12 @@
 			]}
 		>
 			<div class="flex items-center gap-2">
-				<ListOptionsMenu {noRepeat} {onToggleNoRepeat} />
-
-				<button
-					type="button"
-					onclick={handleClear}
-					aria-label="Clear Items"
-					disabled={listEmpty}
-					class={[
-						'text-xs lg:text-sm',
-						'rounded-sm border px-1',
-						listEmpty && 'border-zinc-300 text-zinc-300 dark:border-zinc-600 dark:text-zinc-500',
-						!listEmpty && 'border-zinc-500 text-zinc-600 dark:border-zinc-400 dark:text-zinc-400'
-					]}
-				>
-					Clear
-				</button>
+				<ListOptionsMenu
+					{noRepeat}
+					{onToggleNoRepeat}
+					onClear={handleClear}
+					onOpenPresets={openPresetPicker}
+				/>
 			</div>
 			<span class="text-base lg:text-lg">Manage list items</span>
 			<button
@@ -229,4 +256,35 @@
 	/>
 
 	<ClearListDialog open={clearDialogOpen} {confirmClearHook} {cancelClearHook} />
+
+	<PresetPickerDialog
+		open={presetPickerOpen}
+		onSelect={handlePresetSelected}
+		onClose={closePresetPicker}
+	/>
+
+	<DialogBox open={!!pendingPreset} onClose={cancelReplaceHook}>
+		{#snippet title()}
+			Replace your list with the {pendingPreset?.name} preset?
+		{/snippet}
+		<div>
+			<p>This will replace all current items with the preset.</p>
+		</div>
+		{#snippet actions()}
+			<button
+				type="button"
+				class="rounded-md border border-zinc-400 px-3 py-1.5 text-sm text-zinc-600 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-zinc-500 dark:text-zinc-400 dark:focus:ring-blue-600"
+				onclick={confirmReplaceHook}
+			>
+				Replace
+			</button>
+			<button
+				type="button"
+				class="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-800 dark:text-zinc-300 dark:hover:bg-blue-600 dark:focus:ring-blue-600"
+				onclick={cancelReplaceHook}
+			>
+				Dismiss
+			</button>
+		{/snippet}
+	</DialogBox>
 </section>

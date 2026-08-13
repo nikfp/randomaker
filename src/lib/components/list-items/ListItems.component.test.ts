@@ -199,7 +199,7 @@ describe('ListItems', () => {
 		});
 	});
 
-	it('clear button clears all items from the list', async () => {
+	it('clears all items from the list via the Options menu', async () => {
 		const user = userEvent.setup();
 
 		const store = listState();
@@ -209,24 +209,125 @@ describe('ListItems', () => {
 
 		render(ListItems, { props });
 
-		const clearButton = screen.getByRole('button', { name: /clear/i });
-		expect(clearButton).toBeDisabled();
-
 		store.add('Apple');
 		expect(await screen.findByText(/apple/i)).toBeInTheDocument();
 		store.add('Banana');
 		expect(await screen.findByText(/banana/i)).toBeInTheDocument();
 
-		expect(clearButton).toBeEnabled();
-
-		await user.click(clearButton);
+		await user.click(screen.getByRole('button', { name: /^options$/i }));
+		await user.click(screen.getByRole('menuitem', { name: /clear list/i }));
 
 		const confirmClearButton = screen.getByRole('button', { name: /clear all/i });
 		await user.click(confirmClearButton);
 
-		expect(clearButton).toBeDisabled();
+		expect(store.value).toEqual([]);
 		expect(screen.queryByText(/apple/i)).not.toBeInTheDocument();
 		expect(screen.queryByText(/banana/i)).not.toBeInTheDocument();
+	});
+
+	it('header no longer contains a standalone Clear button', async () => {
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		expect(screen.queryByRole('button', { name: /clear items/i })).not.toBeInTheDocument();
+	});
+
+	it('opens the preset picker dialog from the Options menu', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		await user.click(screen.getByRole('button', { name: /^options$/i }));
+		await user.click(screen.getByRole('menuitem', { name: /presets/i }));
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /coin toss/i })).toBeInTheDocument();
+	});
+
+	it('applies a preset immediately when the list is empty', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		await user.click(screen.getByRole('button', { name: /^options$/i }));
+		await user.click(screen.getByRole('menuitem', { name: /presets/i }));
+		await user.click(screen.getByRole('button', { name: /coin toss/i }));
+
+		expect(screen.queryByText(/replace your list/i)).not.toBeInTheDocument();
+		expect(store.value.map((item) => item.label)).toEqual(['Heads', 'Tails']);
+	});
+
+	it('asks for confirmation before replacing a non-empty list', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		store.add('Apple');
+		await screen.findByText(/apple/i);
+
+		await user.click(screen.getByRole('button', { name: /^options$/i }));
+		await user.click(screen.getByRole('menuitem', { name: /presets/i }));
+		await user.click(screen.getByRole('button', { name: /coin toss/i }));
+
+		const confirm = await screen.findByText(/replace your list with the coin toss preset/i);
+		expect(confirm).toBeInTheDocument();
+		expect(store.value.map((item) => item.label)).toEqual(['Apple']);
+	});
+
+	it('applies the preset only after confirming the replace', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		store.add('Apple');
+		await screen.findByText(/apple/i);
+
+		await user.click(screen.getByRole('button', { name: /^options$/i }));
+		await user.click(screen.getByRole('menuitem', { name: /presets/i }));
+		await user.click(screen.getByRole('button', { name: /coin toss/i }));
+		await user.click(await screen.findByRole('button', { name: /replace/i }));
+
+		expect(store.value.map((item) => item.label)).toEqual(['Heads', 'Tails']);
+	});
+
+	it('leaves the list unchanged when the replace is dismissed', async () => {
+		const user = userEvent.setup();
+		const store = listState();
+		const props: ListItemsProps = {
+			listStore: store
+		};
+
+		render(ListItems, { props });
+
+		store.add('Apple');
+		await screen.findByText(/apple/i);
+
+		await user.click(screen.getByRole('button', { name: /^options$/i }));
+		await user.click(screen.getByRole('menuitem', { name: /presets/i }));
+		await user.click(screen.getByRole('button', { name: /coin toss/i }));
+		await user.click(await screen.findByRole('button', { name: /dismiss/i }));
+
+		expect(store.value.map((item) => item.label)).toEqual(['Apple']);
 	});
 
 	it('wires the options menu no-repeat toggle to the passthrough hook', async () => {
