@@ -1,25 +1,40 @@
 <script lang="ts">
+	import { scale } from 'svelte/transition';
 	import Check from '$lib/components/icons/Check.svelte';
 	import type { ListOptionsMenuProps } from './ListOptionsMenu.types';
 
 	let { noRepeat, onToggleNoRepeat }: ListOptionsMenuProps = $props();
 
+	const TOGGLE_CLOSE_DELAY_MS = 600;
+
 	let open = $state(false);
 	let trigger: HTMLButtonElement | undefined = $state();
 	let firstItem: HTMLButtonElement | undefined = $state();
+	let closeTimer: ReturnType<typeof setTimeout> | undefined;
 
 	function openMenu() {
+		if (closeTimer) {
+			clearTimeout(closeTimer);
+			closeTimer = undefined;
+		}
 		open = true;
 	}
 
 	function closeMenu() {
+		if (closeTimer) {
+			clearTimeout(closeTimer);
+			closeTimer = undefined;
+		}
 		open = false;
 		trigger?.focus();
 	}
 
 	function handleToggle() {
 		onToggleNoRepeat(!noRepeat);
-		closeMenu();
+		if (closeTimer) {
+			clearTimeout(closeTimer);
+		}
+		closeTimer = setTimeout(closeMenu, TOGGLE_CLOSE_DELAY_MS);
 	}
 
 	function onKeydown(event: KeyboardEvent) {
@@ -32,6 +47,14 @@
 		if (open) {
 			firstItem?.focus();
 		}
+	});
+
+	$effect(() => {
+		return () => {
+			if (closeTimer) {
+				clearTimeout(closeTimer);
+			}
+		};
 	});
 </script>
 
@@ -87,14 +110,16 @@
 				<span
 					aria-hidden="true"
 					class={[
-						'inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border',
+						'inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors duration-150',
 						noRepeat
 							? 'border-blue-600 bg-blue-600 dark:border-blue-500 dark:bg-blue-500'
 							: 'border-zinc-400 dark:border-zinc-500'
 					]}
 				>
 					{#if noRepeat}
-						<Check className="h-3 w-3 text-white" />
+						<span transition:scale={{ duration: 150 }}>
+							<Check className="h-3 w-3 text-white" />
+						</span>
 					{/if}
 				</span>
 				No repeats this session

@@ -123,4 +123,36 @@ TDD, one step at a time. For each step: write the tests first, pause for review 
 
 No changes needed in `randomizer-utils.ts` (`secureRandomIndex` already accepts a length).
 
+## Step 7 — Visual confirmation before the toggle menu closes
+
+**Status:** done — implemented in `ListOptionsMenu.svelte`: `TOGGLE_CLOSE_DELAY_MS = 600`, `closeTimer` (plain `let`, non-reactive), `handleToggle` clears + restarts the timer, `closeMenu`/`openMenu` cancel it, unmount `$effect` clears it. Checkbox box gets `transition-colors duration-150` and the `<Check>` is wrapped in a `transition:scale={{ duration: 150 }}` span for the flip pop. 3 new component tests (flipped-state-visible, rapid double-toggle, Escape-cancels-pending) + reworked toggle test; the `ListItems` integration toggle test now uses `waitFor` for the delayed close (real timers). Suite `115/115`; `pnpm check` clean; `pnpm lint` clean.
+
+**Problem:** `handleToggle` (`ListOptionsMenu.svelte:20-23`) calls `onToggleNoRepeat(!noRepeat)` then `closeMenu()` immediately, so the toggle flip (prop round-trip through the store) is never seen.
+
+**Behavior spec:**
+
+- Tapping the toggle calls `onToggleNoRepeat(!noRepeat)` immediately (state applies right away, no lazy debounce), but the menu does **not** close yet — it stays open showing the freshly-flipped `aria-checked`/checkmark, then closes ~600 ms later and returns focus to the trigger.
+- The close delay timer resets on each toggle (a rapid second toggle — an undo — keeps the menu open for a full delay from the _last_ toggle, and its `!noRepeat` reads the already-updated prop).
+- Any immediate close path still wins over the pending delay: Escape, click-catcher click, and a fresh open of the menu all cancel the pending close timer so it can't fire late and yank focus from a newly-opened menu.
+- The timer is cleared on component unmount (no dangling focus-steal after unmount).
+
+**Implementation (in `src/lib/components/list-options-menu/ListOptionsMenu.svelte`):**
+
+- Add `const TOGGLE_CLOSE_DELAY_MS = 600;` and `let closeTimer: ReturnType<typeof setTimeout> | undefined;`.
+- `handleToggle()`: call `onToggleNoRepeat(!noRepeat)`, then `if (closeTimer) clearTimeout(closeTimer); closeTimer = setTimeout(closeMenu, TOGGLE_CLOSE_DELAY_MS);`.
+- `closeMenu()` (already `:15-18`): clear the pending timer as its first line (`if (closeTimer) { clearTimeout(closeTimer); closeTimer = undefined; }`) so Escape / click-catcher / toggle-close all cancel it; keep `open = false` + `trigger?.focus()`.
+- `openMenu()`: clear the pending timer too (an old pending close must not fire into a freshly reopened menu).
+- Unmount cleanup: an `$effect` that returns `() => { if (closeTimer) clearTimeout(closeTimer); }`.
+
+**Optional polish (small, includes in implementation if clean):** make the flip itself readable — the box already uses `border-blue-600 bg-blue-600`; add a quick scale/color transition on the checkbox span (e.g. `transition-colors` + a mount animation on the `<Check>` wrapper) so the state change visibly "pops" during the 600 ms window. No layout changes.
+
+**Update `ListOptionsMenu.component.test.ts`** (real timers + `waitFor`, or `vi.useFakeTimers()` with `userEvent.setup({ advanceTimers: vi.advanceTimersByTime })`):
+
+1. Rewrite "calls onToggleNoRepeat… and closes the menu": after clicking the toggle, menu is **still open** and `onToggleNoRepeat` was called with `true`; after the delay elapses, menu is gone and the trigger has focus.
+2. New: the flipped state is visible while the menu waits — click toggle, `rerender({ noRepeat: true })` to emulate the store prop round-trip, assert `aria-checked="true"` + checkmark while still open.
+3. New: rapid double-toggle keeps the menu open — click toggle, advance delay/2, click toggle again (`noRepeat` prop is true by then → calls `onToggleNoRepeat(false)`), menu must still be open; after another full delay it closes.
+4. New: Escape during the pending delay cancels it — click toggle, press Escape, menu closes + trigger focused immediately; advancing the clock changes nothing (no late refocus).
+
+**Verify:** `pnpm test:run && pnpm check && pnpm lint`.
+
 **Future note (out of scope):** with multi-list, `selection` could move into each store so `pick()` fully self-contains each list's outcome for the coordinated trigger.

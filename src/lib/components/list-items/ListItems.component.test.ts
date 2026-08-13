@@ -255,6 +255,8 @@ describe('ListItems', () => {
 
 		expect(onToggleNoRepeat).toHaveBeenCalledOnce();
 		expect(onToggleNoRepeat).toHaveBeenCalledWith(true);
-		expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+		});
 	});
 });

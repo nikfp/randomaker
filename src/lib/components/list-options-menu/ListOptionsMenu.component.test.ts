@@ -1,6 +1,6 @@
 import { render, screen, within, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import ListOptionsMenu from './ListOptionsMenu.svelte';
 
 describe('ListOptionsMenu', () => {
@@ -66,8 +66,9 @@ describe('ListOptionsMenu', () => {
 		expect(within(toggle()).queryByRole('img', { hidden: true })).not.toBeInTheDocument();
 	});
 
-	it('calls onToggleNoRepeat with the inverted value and closes the menu', async () => {
-		const user = userEvent.setup();
+	it('calls onToggleNoRepeat with the inverted value, then closes the menu after a delay', async () => {
+		vi.useFakeTimers();
+		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 		const onToggleNoRepeat = vi.fn();
 		renderMenu({ onToggleNoRepeat });
 
@@ -76,7 +77,72 @@ describe('ListOptionsMenu', () => {
 
 		expect(onToggleNoRepeat).toHaveBeenCalledOnce();
 		expect(onToggleNoRepeat).toHaveBeenCalledWith(true);
+		expect(menu()).toBeInTheDocument();
+
+		await vi.advanceTimersByTimeAsync(600);
+
 		expect(menu()).not.toBeInTheDocument();
+		expect(optionsButton()).toHaveFocus();
+	});
+
+	it('keeps the flipped state visible while the menu waits to close', async () => {
+		vi.useFakeTimers();
+		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+		const { rerender } = renderMenu();
+
+		await user.click(optionsButton());
+		await user.click(toggle());
+
+		expect(toggle()).toHaveAttribute('aria-checked', 'false');
+
+		await rerender({ noRepeat: true });
+
+		expect(menu()).toBeInTheDocument();
+		expect(toggle()).toHaveAttribute('aria-checked', 'true');
+		expect(within(toggle()).getByRole('img', { hidden: true })).toBeInTheDocument();
+	});
+
+	it('restarts the close delay on a rapid second toggle', async () => {
+		vi.useFakeTimers();
+		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+		const onToggleNoRepeat = vi.fn();
+		const { rerender } = renderMenu({ onToggleNoRepeat });
+
+		await user.click(optionsButton());
+		await user.click(toggle());
+		await rerender({ noRepeat: true });
+		await vi.advanceTimersByTimeAsync(300);
+
+		expect(menu()).toBeInTheDocument();
+
+		await user.click(toggle());
+		await rerender({ noRepeat: false });
+		await vi.advanceTimersByTimeAsync(300);
+
+		expect(menu()).toBeInTheDocument();
+		expect(onToggleNoRepeat).toHaveBeenLastCalledWith(false);
+
+		await vi.advanceTimersByTimeAsync(300);
+
+		expect(menu()).not.toBeInTheDocument();
+	});
+
+	it('lets Escape cancel a pending delayed close immediately', async () => {
+		vi.useFakeTimers();
+		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+		renderMenu();
+
+		await user.click(optionsButton());
+		await user.click(toggle());
+		await user.keyboard('{Escape}');
+
+		expect(menu()).not.toBeInTheDocument();
+		expect(optionsButton()).toHaveFocus();
+
+		await vi.advanceTimersByTimeAsync(600);
+
+		expect(menu()).not.toBeInTheDocument();
+		expect(optionsButton()).toHaveFocus();
 	});
 
 	it('moves focus to the toggle when opened', async () => {
@@ -111,5 +177,9 @@ describe('ListOptionsMenu', () => {
 		await user.click(clickCatcher);
 
 		expect(menu()).not.toBeInTheDocument();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
 	});
 });
