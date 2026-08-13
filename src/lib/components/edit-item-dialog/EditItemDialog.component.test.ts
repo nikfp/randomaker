@@ -105,6 +105,19 @@ describe('EditItemDialog', () => {
 		expect(confirmEditHook).toHaveBeenCalledWith('New Label');
 	});
 
+	it('calls confirmEditHook with the trimmed label when Enter is pressed in the input', async () => {
+		const user = userEvent.setup();
+		const confirmEditHook = vi.fn();
+		renderDialog({ confirmEditHook });
+
+		await user.clear(editInput());
+		await user.type(editInput(), '  New Label  ');
+		await user.keyboard('{Enter}');
+
+		expect(confirmEditHook).toHaveBeenCalledOnce();
+		expect(confirmEditHook).toHaveBeenCalledWith('New Label');
+	});
+
 	it('calls cancelEditHook when Cancel is clicked', async () => {
 		const user = userEvent.setup();
 		const cancelEditHook = vi.fn();

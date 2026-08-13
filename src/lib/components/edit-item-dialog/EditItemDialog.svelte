@@ -62,6 +62,12 @@
 			]}
 			bind:value={draft}
 			bind:this={inputEl}
+			onkeydown={(event) => {
+				if (event.key === 'Enter') {
+					event.preventDefault();
+					handleSave();
+				}
+			}}
 		/>
 		{#if errorMessages}
 			{#each errorMessages as error, i (error.key)}
