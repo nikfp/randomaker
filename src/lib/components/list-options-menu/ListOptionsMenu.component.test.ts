@@ -8,11 +8,20 @@ describe('ListOptionsMenu', () => {
 	const menu = () => screen.queryByRole('menu');
 	const toggle = () => screen.getByRole('menuitemcheckbox', { name: /no repeats this session/i });
 
-	function renderMenu(props: { noRepeat?: boolean; onToggleNoRepeat?: () => void } = {}) {
+	function renderMenu(
+		props: {
+			noRepeat?: boolean;
+			onToggleNoRepeat?: () => void;
+			onClear?: () => void;
+			onOpenPresets?: () => void;
+		} = {}
+	) {
 		return render(ListOptionsMenu, {
 			props: {
 				noRepeat: false,
 				onToggleNoRepeat: vi.fn(),
+				onClear: vi.fn(),
+				onOpenPresets: vi.fn(),
 				...props
 			}
 		});
@@ -34,6 +43,41 @@ describe('ListOptionsMenu', () => {
 		expect(optionsButton()).toHaveAttribute('aria-expanded', 'true');
 		expect(menu()).toBeInTheDocument();
 		expect(toggle()).toBeInTheDocument();
+	});
+
+	it('lists No repeats, Clear list, and Presets items when open', async () => {
+		const user = userEvent.setup();
+		renderMenu();
+
+		await user.click(optionsButton());
+
+		expect(toggle()).toBeInTheDocument();
+		expect(screen.getByRole('menuitem', { name: /clear list/i })).toBeInTheDocument();
+		expect(screen.getByRole('menuitem', { name: /presets/i })).toBeInTheDocument();
+	});
+
+	it('fires onClear when Clear list is clicked and closes the menu', async () => {
+		const user = userEvent.setup();
+		const onClear = vi.fn();
+		renderMenu({ onClear });
+
+		await user.click(optionsButton());
+		await user.click(screen.getByRole('menuitem', { name: /clear list/i }));
+
+		expect(onClear).toHaveBeenCalledOnce();
+		expect(menu()).not.toBeInTheDocument();
+	});
+
+	it('fires onOpenPresets when Presets is clicked and closes the menu', async () => {
+		const user = userEvent.setup();
+		const onOpenPresets = vi.fn();
+		renderMenu({ onOpenPresets });
+
+		await user.click(optionsButton());
+		await user.click(screen.getByRole('menuitem', { name: /presets/i }));
+
+		expect(onOpenPresets).toHaveBeenCalledOnce();
+		expect(menu()).not.toBeInTheDocument();
 	});
 
 	it('reflects the noRepeat prop via aria-checked', async () => {
