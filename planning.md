@@ -49,7 +49,9 @@ with implementation), plus `pnpm check` and `pnpm lint` before moving on.
 ### 2. Store method — `src/lib/randomizer-store.svelte.ts`
 - Add `loadPreset(labels: string[])` (or `replaceWithLabels`) that maps labels
   to fresh `ListItem`s via `randomApi.randomUUID()` and resets `pickedIds`
-  (mirror `replaceAll` but accept raw labels).
+  (mirror `replaceAll` but accept raw labels). Sets `noRepeat` to `false` —
+  current presets are all replaceable/repeatable; a future preset may opt in
+  to no-repeat. (**decided**, added during step 2).
 - **Tests first** — extend `randomizer-store.svelte.test.ts` (node):
   - loading into an empty store sets `value.length === labels.length`.
   - loading with existing items replaces them entirely (no merge/append).

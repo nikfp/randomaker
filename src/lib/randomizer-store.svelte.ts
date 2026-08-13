@@ -102,6 +102,12 @@ function createListState(initial: ListItem[] = [], randomApi: RandomAPI = crypto
 			pickedIds = [];
 		},
 
+		loadPreset(labels: string[]) {
+			items = labels.map((label) => ({ label, id: randomApi.randomUUID() }));
+			pickedIds = [];
+			noRepeat = false;
+		},
+
 		clear() {
 			items = [];
 			pickedIds = [];
