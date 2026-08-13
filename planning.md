@@ -1,53 +1,54 @@
 # Issue #29: Ability to edit list items
 
-## Planning
+## Strategy
 
-### Goal
+TDD, one step at a time. For each step: write the tests first, pause for review before implementing, then implement only enough code to make the new tests pass. Verify after each step with `pnpm test:run`.
 
-Allow users to edit existing list items through a dialog interface, following the same pattern as the existing `DeleteItemDialog` component.
+## Step 1 — `updateByKey(key, label)` on the store
 
-### Scope
+**Tests first** in `src/lib/randomizer-store.svelte.test.ts` (following existing `removeByKey` pattern):
+1. Updates only the matching item's label, preserving its `id` and position
+2. Leaves the list unchanged when no item matches `key`
+3. Preserves the order and contents of all other items
+4. Store does not trim — trimming belongs to the dialog (`inputSchema`), mirroring how `add` works
 
-- Edit individual list items via a dedicated dialog component
-- Preserve list structure and ordering when editing
-- Handle validation and error states within the dialog
-- Support canceling changes and reverting to original value
+**Then:** add `updateByKey(key, label)` in `randomizer-store.svelte.ts` (map over items, replace label where `id === key`).
 
-### Design Pattern
+## Step 2 — `EditItemDialog` component
 
-**Dialog-based edit** following the `DeleteItemDialog` pattern because:
+New files: `src/lib/components/edit-item-dialog/EditItemDialog.svelte` + `EditItemDialog.component.test.ts`.
 
-- Consistent with existing codebase patterns
-- Clear separation of edit mode from view mode
-- Easy to manage focus and accessibility
-- Mobile and desktop compatible
-- Reusable component structure
+Props: `open: boolean`, `item: ListItem`, `confirmEditHook: (newLabel: string) => void`, `cancelEditHook: () => void`.
 
-### Component Structure
+UI: `DialogBox` with title "Edit item"; input using `ListInput` base styles; local `draft = $state('')` reset to `item.label` in an `$effect` keyed on `open`, input focused + text `select()`-ed on open; Save = blue primary → `confirmEditHook(draft.trim())`; Cancel = zinc secondary → `cancelEditHook`. Validation: Save disabled when trimmed draft is empty **or** > 255 chars (no inline error state).
 
-Following the `DeleteItemDialog` pattern, the edit component will:
+**Tests** (mock hooks with `vi.fn()`, drive with `user-event`, patterns from `DeleteItemDialog`/`ClearListDialog` tests):
+1. Renders nothing when `open` is false
+2. Renders input pre-filled with `item.label` when open
+3. Focuses input and selects its text on open
+4. Save disabled for empty/whitespace draft
+5. Save disabled at 256 chars
+6. Save enabled for a valid label
+7. Clicking Save calls `confirmEditHook` with the trimmed label
+8. Clicking Cancel calls `cancelEditHook`
+9. Clicking the backdrop calls `cancelEditHook`
+10. Pressing Escape calls `cancelEditHook`
 
-1. **EditItemDialog.svelte** - Discrete component at `src/lib/components/edit-item-dialog/EditItemDialog.svelte`
-   - Accepts `open`, `item` (the item to edit), `confirmEditHook(newLabel)`, `cancelEditHook` props
-   - Renders a `DialogBox` with the item's current label in an input
-   - Confirm button saves the new label and closes the dialog
-   - Cancel button/discard reverts to original label
+## Step 3 — Wire edit into `ListItems`
 
-2. **Integration in ListItems.svelte** - Trigger the dialog from each list item's edit button
+Modify `src/lib/components/list-items/ListItems.svelte`:
+- Add Pencil edit button per row, left of the trash button, `aria-label="Edit {label}"`, icon `text-zinc-400`
+- Track `editItem` state (mirrors `deleteItem`); clicking Edit opens `EditItemDialog`
+- `confirmEditHook`: `listStore.updateByKey(editItem.id, label)`, close dialog, return focus to the triggering Edit button (`currentTarget` reference)
+- `cancelEditHook`: close dialog, return focus to the triggering Edit button
 
-### UI Decisions (resolved)
+**Tests** added to `ListItems.component.test.ts` (integration with real `listState()`, mirroring the delete test):
+1. Renders an Edit button named "Edit {label}" for each item, before the delete button
+2. Clicking Edit opens a dialog pre-filled with the item's label
+3. Confirming an edit updates the label in the list, preserving order and `id`
+4. Cancelling leaves the label unchanged
+5. Focus returns to the Edit button after the dialog closes
 
-1. **Edit trigger**: Use the recently created `Pencil.svelte` component, which has the same class API as the trash icon component. Edit button per item row, placed left of the delete button, `aria-label="Edit {label}"`, icon tinted `text-zinc-400` to match the trash icon.
-2. **Input handling**: `EditItemDialog` keeps a local `draft` (`$state('')`) reset to `item.label` in an `$effect` keyed on `open`. Confirm calls `confirmEditHook(draft)`; Cancel/Escape/backdrop never write to the store, so the original label is preserved automatically. The input mounts fresh per open thanks to `DialogBox`'s `{#if open}`.
-3. **Validation rules**: Reuse `inputSchema` (trim, min 1, max 255) against the draft. Save button is `disabled` while the trimmed draft is empty; if the draft exceeds 255 chars, allow submit but show the inline `Input Too Long` error (ListInput style) without writing. `updateByKey(key, label)` receives the trimmed label.
-4. **Cancel/discard behavior**: Free via `DialogBox` — Escape and backdrop click route through `onClose` → `cancelEditHook`, and a Cancel button does the same. No store write on any cancel path.
-5. **Keyboard accessibility**: On open, `$effect` focuses the input and calls `select()` so the existing text is auto-selected and typing replaces it. Focus returns to the triggering edit button after close (an improvement over `DeleteItemDialog`, wired in `ListItems` from the click's `currentTarget`). No full focus trap — out of scope, matches existing dialogs.
-6. **Visual states**: Dialog scaffold matches `DeleteItemDialog`; input uses `ListInput` base styles (zinc border, `focus:ring-2 focus:ring-blue-500`, dark variants). Button color swap vs delete: Save = blue-filled primary, Cancel = zinc-outlined secondary. Disabled Save: `disabled:opacity-50 disabled:cursor-not-allowed`.
+## Step 4 — Verify
 
-### Revised Next Steps
-
-- **Create EditItemDialog component** - `src/lib/components/edit-item-dialog/EditItemDialog.svelte` following DeleteItemDialog pattern
-- **Update ListItems.svelte** - Add edit button (pencil icon) and integrate with new component, including focus return to trigger
-- **Add `updateByKey` to randomizer store** - Method to update item by key in `src/lib/randomizer-store.svelte.ts`
-- **Write tests** - TDD approach with user interaction patterns (69 tests passing)
-- **Update documentation** - Reflect dialog-based design decisions (in planning.md)
+`pnpm test:run && pnpm check && pnpm lint`
