@@ -99,8 +99,12 @@ describe('ListItems', () => {
 		const editBanana = screen.getByRole('button', { name: /edit banana/i });
 		const deleteBanana = screen.getByRole('button', { name: /delete banana/i });
 
-		expect(editApple.compareDocumentPosition(deleteApple) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-		expect(editBanana.compareDocumentPosition(deleteBanana) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(
+			editApple.compareDocumentPosition(deleteApple) & Node.DOCUMENT_POSITION_FOLLOWING
+		).toBeTruthy();
+		expect(
+			editBanana.compareDocumentPosition(deleteBanana) & Node.DOCUMENT_POSITION_FOLLOWING
+		).toBeTruthy();
 	});
 
 	it('opens the edit dialog pre-filled with the item label when Edit is clicked', async () => {

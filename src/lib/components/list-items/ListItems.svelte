@@ -5,16 +5,20 @@
 
 	import ChevronDown from '$lib/components/icons/ChevronDown.svelte';
 	import ChevronRight from '$lib/components/icons/ChevronRight.svelte';
+	import Pencil from '$lib/components/icons/Pencil.svelte';
 	import Trash from '$lib/components/icons/Trash.svelte';
 	import type { ListItem } from '$lib/randomizer-store.svelte';
 	import type { ListItemsProps } from './list-items.types';
 	import DeleteItemDialog from '$lib/components/delete-item-dialog/DeleteItemDialog.svelte';
+	import EditItemDialog from '$lib/components/edit-item-dialog/EditItemDialog.svelte';
 	import ClearListDialog from '$lib/components/clear-list-dialog/ClearListDialog.svelte';
 
 	let { sectionClass = '', listStore }: ListItemsProps = $props();
 
 	let listOpen = $state(true);
 	let deleteItem: ListItem | undefined = $state(undefined);
+	let editItem: ListItem | undefined = $state(undefined);
+	let editTrigger: HTMLButtonElement | undefined = $state(undefined);
 	let clearDialogOpen = $state(false);
 
 	let isRemoving = $state(false);
@@ -32,6 +36,11 @@
 
 	function handleDeleteClicked(key: string) {
 		deleteItem = listStore.getByKey(key);
+	}
+
+	function handleEditClicked(key: string, trigger: HTMLButtonElement) {
+		editItem = listStore.getByKey(key);
+		editTrigger = trigger;
 	}
 
 	function handleClear() {
@@ -67,6 +76,19 @@
 
 	function cancelDeleteHook() {
 		deleteItem = undefined;
+	}
+
+	function confirmEditHook(newLabel: string) {
+		if (editItem) {
+			listStore.updateByKey(editItem.id, newLabel);
+		}
+		editItem = undefined;
+		editTrigger?.focus();
+	}
+
+	function cancelEditHook() {
+		editItem = undefined;
+		editTrigger?.focus();
 	}
 </script>
 
@@ -162,6 +184,14 @@
 							<button
 								class="inline-flex items-center"
 								type="button"
+								aria-label={`Edit ${item.label}`}
+								onclick={(event) => handleEditClicked(item.id, event.currentTarget)}
+							>
+								<Pencil className="text-zinc-400" />
+							</button>
+							<button
+								class="inline-flex items-center"
+								type="button"
 								aria-label={`Delete ${item.label}`}
 								onclick={() => handleDeleteClicked(item.id)}
 							>
@@ -179,6 +209,13 @@
 		{confirmDeleteHook}
 		{cancelDeleteHook}
 		item={deleteItem ?? { id: '', label: '' }}
+	/>
+
+	<EditItemDialog
+		open={!!editItem}
+		{confirmEditHook}
+		{cancelEditHook}
+		item={editItem ?? { id: '', label: '' }}
 	/>
 
 	<ClearListDialog open={clearDialogOpen} {confirmClearHook} {cancelClearHook} />

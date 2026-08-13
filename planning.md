@@ -42,7 +42,11 @@ UI: `DialogBox` with title "Edit item"; input using `ListInput` base styles; loc
 9. Clicking the backdrop calls `cancelEditHook`
 10. Pressing Escape calls `cancelEditHook`
 
-## Step 3 — Wire edit into `ListItems`
+## Step 3 — Wire edit into `ListItems` — ✅ COMPLETE
+
+Done: Pencil edit button per row (`aria-label="Edit {label}"`, left of trash, `text-zinc-400`), `editItem` + `editTrigger` state, `EditItemDialog` wired via `confirmEditHook`/`cancelEditHook` (both close the dialog and return focus to the triggering Edit button, captured via `event.currentTarget`). `Pencil.svelte` base class changed from `size-6` to `h-4 w-4` to match `Trash`. 5 integration tests added to `ListItems.component.test.ts` (edit button placement, dialog pre-fill, confirm preserves order/id, cancel leaves unchanged, focus return). All 81 tests pass; `pnpm check` and `pnpm lint` clean.
+
+## Original plan for Step 3
 
 Modify `src/lib/components/list-items/ListItems.svelte`:
 
