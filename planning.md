@@ -33,6 +33,7 @@ Tests are written and verified failing **before** each step's production code
 with implementation), plus `pnpm check` and `pnpm lint` before moving on.
 
 ### 1. Preset data module — `src/lib/presets.ts`
+
 - Type: `type Preset = { name: string; labels: string[] }` (+ maybe a
   `label(): string[]` function for generated ranges like d20).
 - Export an ordered `PRESETS: Preset[]`.
@@ -47,6 +48,7 @@ with implementation), plus `pnpm check` and `pnpm lint` before moving on.
   - d20 (when present) yields exactly 20 distinct labels `1..20`.
 
 ### 2. Store method — `src/lib/randomizer-store.svelte.ts`
+
 - Add `loadPreset(labels: string[])` (or `replaceWithLabels`) that maps labels
   to fresh `ListItem`s via `randomApi.randomUUID()` and resets `pickedIds`
   (mirror `replaceAll` but accept raw labels). Sets `noRepeat` to `false` —
@@ -60,6 +62,7 @@ with implementation), plus `pnpm check` and `pnpm lint` before moving on.
   - each loaded item gets a fresh unique `id` (inject staging `RandomAPI`).
 
 ### 3. Consolidate dropdown — `ListOptionsMenu` + new `PresetPickerDialog`
+
 - **Extend `ListOptionsMenu`** (src/lib/components/list-options-menu/ListOptionsMenu.svelte)
   from a single no-repeat toggle into the full options menu containing:
   - "No repeats this session" (existing `menuitemcheckbox` toggle)
@@ -92,6 +95,7 @@ with implementation), plus `pnpm check` and `pnpm lint` before moving on.
     - Cancel/dismiss fires close callback without selecting.
 
 ### 4. Wire into page/ListItems
+
 - `ListItems.svelte`: keep clear/preset dialog state; move `handleClear` +
   clear-confirm through `ListOptionsMenu.onClear`; add preset-picker state and
   call `listStore.loadPreset(preset.labels)` on confirm.
@@ -125,5 +129,6 @@ with implementation), plus `pnpm check` and `pnpm lint` before moving on.
 6. `pnpm test:run && pnpm check && pnpm lint`
 
 ## Out of scope
+
 - URL sharing of arbitrary lists (#28) — v0.3
 - local save/reload (#27) — v0.3
