@@ -15,7 +15,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-pnpm dlx sv@0.15.3 create --template minimal --types ts --add eslint prettier tailwindcss="plugins:typography" storybook --install pnpm randomaker
+pnpm dlx sv@0.15.3 create --template minimal --types ts --add eslint prettier tailwindcss="plugins:typography" --install pnpm randomaker
 ```
 
 ## Developing
