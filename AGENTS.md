@@ -26,5 +26,4 @@ Always use `pnpm` instead of `npx` for running package scripts and commands.
 - `pnpm lint` — prettier --check && eslint
 - `pnpm format` — prettier --write
 - `pnpm check` — svelte-check
-- `pnpm storybook` — storybook dev server
 - Prebuild: `pnpm test:run && pnpm check && pnpm lint`

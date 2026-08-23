@@ -1,134 +1,93 @@
-# Planning — Issue #6: Get some presets going
+# Planning — Issue #40: Remove Storybook
 
-Milestone: v0.2 (QOL). Core need: let users load ready-made lists like coin toss,
-dice, d20 instead of typing them out.
+Milestone: v0.2. Storybook was scaffolded but never adopted; it is dead weight
+(8+ dev deps, scaffold components, config). Nothing in app code imports it.
 
 ## Goal
 
-A "Presets" affordance that swaps the current list for a curated preset
-(coin toss, d6, d20, RPS, yes/no, deck of cards, etc.). Selecting a preset
-replaces all items in the list and resets any no-repeat/picked state.
+Remove Storybook and all supporting files/deps/config so the repo installs
+faster and contains no unused tooling. Pure deletion + config cleanup; no
+behavior change to the app or test suite.
 
-## Current architecture (relevant pieces)
+## Scope inventory (what exists today)
 
-- Store `createListState` (src/lib/randomizer-store.svelte.ts) already has
-  `replaceAll(nextItems: ListItem[])` which resets `pickedIds`. Presets should
-  go through an equivalent store entry point so id generation stays in the
-  store via `randomApi.randomUUID()`.
-- `randomizer-store.svelte.ts:100` — `replaceAll` exists but takes full
-  `ListItem[]` (labels + ids); preset data is naturally just labels, so a new
-  label-based method is cleaner.
-- UI pattern to reuse: `ListOptionsMenu` (src/lib/components/list-options-menu)
-  is a dropdown menu toggled by a header button; `ClearListDialog` +
-  `DialogBox` provide a confirm-dialog pattern.
-- Items header lives in `ListItems.svelte:111-153` ("Manage list items" row
-  with Options / Clear buttons). All options consolidate into the dropdown:
-  no-repeat toggle (already in `ListOptionsMenu`), Clear (currently a header
-  button: `ListItems.svelte:123-136`), and Presets (new).
+- `.storybook/` — `main.ts`, `preview.ts`
+- `src/stories/` — Button/Header/Page components + their `*.stories.svelte`.
+  Verified unreferenced by any app code or tests.
+- `package.json`:
+  - scripts: `storybook` (package.json:19), `build-storybook` (:20)
+  - devDeps: `@chromatic-com/storybook` (:23), `@storybook/addon-a11y` (:26),
+    `@storybook/addon-docs` (:27), `@storybook/addon-svelte-csf` (:28),
+    `@storybook/addon-vitest` (:29), `@storybook/sveltekit` (:30),
+    `eslint-plugin-storybook` (:45), `storybook` (:53)
+- Storybook-vitest integration leftovers (scaffolded by addon-vitest, only ever
+  referenced from commented-out code):
+  - `vite.config.ts` — commented import block (:5-11) and commented storybook
+    browser-test project (:66-82); imports `@vitest/browser-playwright` and
+    uses `playwright` provider
+  - `@vitest/browser-playwright` (package.json:41) + `playwright` (:49)
+  - `vitest.shims.d.ts` — single line referencing `@vitest/browser-playwright`
+- `eslint.config.js:1-2` — comment-only reference to the storybook eslint
+  plugin (the import itself is already commented out)
+- `.gitignore:25-26` — `*storybook.log`, `storybook-static`
+- `AGENTS.md:29` — lists a `pnpm storybook` command that will stop existing
+- `README.md:18` — mentions `--add ... storybook` in the original `sv create`
+  scaffold command
+- CI (`.github/workflows/ci.yml`) has no storybook steps — no changes needed
 
 ## Plan
 
-Tests are written and verified failing **before** each step's production code
-(test-first). Run at each step: `pnpm test:run` (added test fails, then passes
-with implementation), plus `pnpm check` and `pnpm lint` before moving on.
+Deletion-first cleanup; each step ends runnable. No test-first needed since we
+are removing code, not adding it — the existing suite is the safety net.
 
-### 1. Preset data module — `src/lib/presets.ts`
+### 1. Delete files
 
-- Type: `type Preset = { name: string; labels: string[] }` (+ maybe a
-  `label(): string[]` function for generated ranges like d20).
-- Export an ordered `PRESETS: Preset[]`.
-- Start minimal: Coin Toss (`Heads`/`Tails`), d6 (`1..6`), d20 (`1..20`),
-  Rock Paper Scissors, Yes / No. (Decision 2 — open; swap set as agreed.)
-- Replace semantic confirmed: a preset replaces the whole list (decision 1).
-- **Tests first** — `src/lib/presets.test.ts` (node):
-  - `PRESETS` is a non-empty ordered array; every entry has a non-empty
-    `name` unique across the set.
-  - Every entry's `labels` are non-empty strings with no duplicates.
-  - Coin Toss labels are `['Heads', 'Tails']`.
-  - d20 (when present) yields exactly 20 distinct labels `1..20`.
+- Remove `.storybook/` and `src/stories/`
+- Remove `vitest.shims.d.ts` (exists solely for the playwright shim)
 
-### 2. Store method — `src/lib/randomizer-store.svelte.ts`
+### 2. package.json + lockfile
 
-- Add `loadPreset(labels: string[])` (or `replaceWithLabels`) that maps labels
-  to fresh `ListItem`s via `randomApi.randomUUID()` and resets `pickedIds`
-  (mirror `replaceAll` but accept raw labels). Sets `noRepeat` to `false` —
-  current presets are all replaceable/repeatable; a future preset may opt in
-  to no-repeat. (**decided**, added during step 2).
-- **Tests first** — extend `randomizer-store.svelte.test.ts` (node):
-  - loading into an empty store sets `value.length === labels.length`.
-  - loading with existing items replaces them entirely (no merge/append).
-  - `pickedIds` are reset after loading (verify via `setNoRepeat(true)` +
-    `pick()` exhausting the pool, then `loadPreset` restores full pool).
-  - each loaded item gets a fresh unique `id` (inject staging `RandomAPI`).
+- Drop the two scripts and the eight storybook devDeps listed above
+- Also drop `playwright` and `@vitest/browser-playwright` (**decision 1**):
+  their only consumer is the commented-out storybook browser-test project in
+  vite.config.ts. Re-add later if real browser tests are wanted.
+- Run `pnpm install` to sync `pnpm-lock.yaml`
 
-### 3. Consolidate dropdown — `ListOptionsMenu` + new `PresetPickerDialog`
+### 3. Config/doc scrub
 
-- **Extend `ListOptionsMenu`** (src/lib/components/list-options-menu/ListOptionsMenu.svelte)
-  from a single no-repeat toggle into the full options menu containing:
-  - "No repeats this session" (existing `menuitemcheckbox` toggle)
-  - "Clear list" (new `menuitem`)
-  - "Presets" (new `menuitem`)
-- Existing menu mechanics stay: aria-haspopup/expanded, backdrop-close button,
-  Escape handler, focus first item on open (`ListOptionsMenu.svelte:40-58`).
-- Menu needs new props: `onClear` and `onOpenPresets` callbacks (keeps the menu
-  presentational; dialogs stay in parent `ListItems`).
-- **Remove** the standalone Clear header button from `ListItems.svelte:123-136`;
-  Clear moves into the dropdown.
-- **New `PresetPickerDialog`** (src/lib/components/preset-menu/... or
-  `preset-picker-dialog/`): a `DialogBox` wrapper opened from the "Presets"
-  item that lists all `PRESETS` by name and asks the user to pick one. Picking
-  calls back to the parent; a Cancel/dismiss action closes it. Reuse focus
-  management from `ClearListDialog` (`ClearListDialog.svelte:12-23`).
-- Replace-confirm flow (decision 4 = option A): picking a preset with a
-  non-empty list opens a `ClearListDialog`-style confirm ("Replace your list
-  with the {name} preset?"); empty list applies immediately.
-- **Tests first** (jsdom, `@testing-library/svelte` + `user-event`):
-  - `ListOptionsMenu.component.test.ts`:
-    - menu opens and lists No repeats / Clear list / Presets items.
-    - backdrop click and Escape close the menu.
-    - clicking "Clear list" fires `onClear`.
-    - clicking "Presets" fires `onOpenPresets`.
-    - no-repeat toggle still works and `aria-checked` reflects prop.
-  - `PresetPickerDialog.component.test.ts`:
-    - renders a button/option for every preset name.
-    - picking one fires the select callback with the chosen preset.
-    - Cancel/dismiss fires close callback without selecting.
+- `vite.config.ts`: delete the commented path/url/storybook/playwright imports
+  and the entire commented storybook test project
+- `eslint.config.js`: remove the two leading comment lines
+- `.gitignore`: remove both storybook entries
+- `AGENTS.md`: remove the `pnpm storybook` command line
+- `README.md`: leave for #34 (**decision 2**) — README cleanup has its own
+  issue; touching it here invites merge conflicts with that work
 
-### 4. Wire into page/ListItems
+## Verification
 
-- `ListItems.svelte`: keep clear/preset dialog state; move `handleClear` +
-  clear-confirm through `ListOptionsMenu.onClear`; add preset-picker state and
-  call `listStore.loadPreset(preset.labels)` on confirm.
-- Replace-confirm dialog copy: "Replace your list with the {name} preset?"
-- **Tests first** — extend `ListItems.component.test.ts` (jsdom):
-  - "Presets" in Options opens the picker dialog.
-  - picking a preset with an empty list calls `loadPreset` immediately.
-  - picking a preset with a non-empty list shows the replace-confirm dialog;
-    confirming applies it, dismissing does not.
-  - header no longer contains a standalone Clear button (Clear only in menu).
+1. `pnpm install` completes cleanly (lockfile in sync)
+2. `pnpm test:run && pnpm check && pnpm lint` all pass
+3. `grep -ri storybook .` (excluding node_modules/.git) returns nothing except
+   README.md per decision 2
+4. Spot-check `pnpm build` still succeeds (adapter untouched, but cheap)
+
+## Risks / notes
+
+- Large lockfile diff — expected, review that removed packages match scope
+  exactly (no transitive removal surprises)
+- `svelte-kit sync` regenerates types on next script run; unrelated to this
+  change
+- Nothing else references `src/stories` or `.storybook` (verified by grep)
 
 ## Open decisions
 
-1. **Replace vs append**: replace assumed (used throughout plan) — still needs
-   confirmation before finalizing.
-2. **Which presets to ship first**: propose Coin Toss, d6, d20, RPS, Yes/No.
-   Dice with many faces (d20) need the label-generator helper.
-3. **Preset placement**: **decided** — consolidated "Options" dropdown with
-   `PresetPickerDialog` for selection.
-4. **Replace confirmation**: **decided** (option A) — Options → Presets →
-   picker → pick one → a `ClearListDialog`-style confirm warns about the
-   overwrite (only when the list is non-empty). Empty list applies immediately.
-
-## Implementation order (test-first at each step)
-
-1. `presets.test.ts` → `presets.ts`
-2. store `loadPreset` tests → store method
-3. `ListOptionsMenu` consolidate tests → implementation
-4. `PresetPickerDialog` tests → implementation
-5. Replace-confirmation + `ListItems` integration tests → wiring
-6. `pnpm test:run && pnpm check && pnpm lint`
+1. **Playwright deps**: **decided** — removed alongside storybook since they
+   were only pulled in for its vitest addon. Re-add deliberately if browser
+   tests are wanted later.
+2. **README line**: **decided** — dropped `storybook` from the recreate
+   command so it matches post-cleanup configuration.
 
 ## Out of scope
 
-- URL sharing of arbitrary lists (#28) — v0.3
-- local save/reload (#27) — v0.3
+- README rewrite (#34)
+- Real browser-mode component tests (would reintroduce playwright deliberately)
